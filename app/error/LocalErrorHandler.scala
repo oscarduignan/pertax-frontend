@@ -35,8 +35,9 @@ class LocalErrorHandler @Inject()(
 )(
   implicit val partialRetriever: LocalPartialRetriever,
   val configDecorator: ConfigDecorator,
-  val templateRenderer: TemplateRenderer)
-    extends FrontendErrorHandler with I18nSupport with RendersErrors {
+  val templateRenderer: TemplateRenderer,
+  cc: ControllerComponents
+) extends FrontendErrorHandler with I18nSupport with RendersErrors {
 
   override def standardErrorTemplate(
     pageTitle: String,

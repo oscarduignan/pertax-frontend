@@ -31,8 +31,7 @@ class AuthJourneyImpl @Inject()(
   authAction: AuthAction,
   minimumAuthAction: MinimumAuthAction,
   selfAssessmentStatusAction: SelfAssessmentStatusAction,
-  getPersonDetailsAction: GetPersonDetailsAction,
-  cc: ControllerComponents)
+  getPersonDetailsAction: GetPersonDetailsAction)
     extends AuthJourney {
 
   override val authWithPersonalDetails

@@ -25,26 +25,32 @@ import models.{NonFilerSelfAssessmentUser, PaymentRequest, SelfAssessmentUser}
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.i18n.MessagesApi
-import play.api.mvc.{Action, AnyContent}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.HeaderCarrierConverter
 import uk.gov.hmrc.renderer.TemplateRenderer
 import uk.gov.hmrc.time.CurrentTaxYear
 import util.LocalPartialRetriever
 
+import scala.concurrent.ExecutionContext
+
 class PaymentsController @Inject()(
-  val messagesApi: MessagesApi,
   val payApiConnector: PayApiConnector,
   authJourney: AuthJourney,
   withBreadcrumbAction: WithBreadcrumbAction)(
   implicit partialRetriever: LocalPartialRetriever,
   configDecorator: ConfigDecorator,
-  val templateRenderer: TemplateRenderer)
-    extends PertaxBaseController with CurrentTaxYear with RendersErrors {
+  val templateRenderer: TemplateRenderer,
+  cc: MessagesControllerComponents,
+  ec: ExecutionContext
+) extends PertaxBaseController(cc) with CurrentTaxYear with RendersErrors {
 
   override def now: () => DateTime = () => DateTime.now()
 
   def makePayment: Action[AnyContent] =
     (authJourney.authWithPersonalDetails andThen withBreadcrumbAction.addBreadcrumb(baseBreadcrumb)).async {
       implicit request =>
+        implicit val hc = HeaderCarrierConverter.fromHeadersAndSession(request.headers)
         if (request.isSa) {
           request.saUserType match {
             case saUser: SelfAssessmentUser => {
