@@ -17,12 +17,13 @@
 package controllers.auth
 
 import controllers.auth.requests.UserRequest
+import javax.inject.Inject
 import play.api.mvc.{ActionRefiner, MessagesControllerComponents, Result}
 import uk.gov.hmrc.renderer.ActiveTab
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class WithActiveTabAction(cc: MessagesControllerComponents) {
+class WithActiveTabAction @Inject()(cc: MessagesControllerComponents) {
 
   def addActiveTab(currentActiveTab: ActiveTab): ActionRefiner[UserRequest, UserRequest] =
     new ActionRefiner[UserRequest, UserRequest] {
