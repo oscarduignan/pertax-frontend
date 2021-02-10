@@ -16,24 +16,27 @@
 
 package services
 
+import cats.data.OptionT
+import cats.implicits.catsStdInstancesForOption
 import com.codahale.metrics.Timer
 import com.kenshoo.play.metrics.Metrics
 import config.ConfigDecorator
-import models.addresslookup.RecordSet
+import connectors.AddressLookupConnector
+import models.addresslookup._
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatestplus.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar.mock
 import play.api.http.Status._
 import play.api.libs.json.{JsValue, Json}
-import play.api.{Configuration, Environment}
-import services.http.FakeSimpleHttp
+import services.http.{FakeSimpleHttp, SimpleHttp}
 import uk.gov.hmrc.crypto.ApplicationCrypto
 import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import util.Fixtures._
 import util.{BaseSpec, Tools}
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.io.Source
 
 class AddressLookupServiceSpec extends BaseSpec {
@@ -68,11 +71,13 @@ class AddressLookupServiceSpec extends BaseSpec {
       }
 
       val timer = MockitoSugar.mock[Timer.Context]
+      val mockAddressLookupConnector = MockitoSugar.mock[AddressLookupConnector]
 
       val fakeTools = new Tools(injected[ApplicationCrypto])
       val serviceConfig = app.injector.instanceOf[ServicesConfig]
 
       val addressLookupService: AddressLookupService = new AddressLookupService(
+        mockAddressLookupConnector,
         injected[ConfigDecorator],
         fakeSimpleHttp,
         MockitoSugar.mock[Metrics],
@@ -155,6 +160,69 @@ class AddressLookupServiceSpec extends BaseSpec {
       verify(met, times(1)).startTimer(metricId)
       verify(met, times(1)).incrementFailedCounter(metricId)
       verify(timer, times(1)).stop()
+    }
+  }
+
+  "Calling AddressLookupService.initialiseAddressLookupJourney" should {
+
+    val mockAddressLookupConnector = mock[AddressLookupConnector]
+    def sut =
+      new AddressLookupService(
+        mockAddressLookupConnector,
+        config,
+        injected[SimpleHttp],
+        injected[Metrics],
+        injected[Tools],
+        injected[ServicesConfig])
+
+    implicit lazy val ec: ExecutionContext = injected[ExecutionContext]
+
+    "return a redirectUrl" when {
+
+      "the connector returns 202 with the url in the Location header" in {
+
+        val redirectUrl = "/foo"
+
+        when(mockAddressLookupConnector.initJourney(any(), any())) thenReturn HttpResponse(
+          ACCEPTED,
+          "",
+          Map("Location" -> Seq(redirectUrl)))
+
+        await(sut.initialiseAddressLookupJourney.value) shouldBe Some(redirectUrl)
+      }
+    }
+
+    "return None" when {
+
+      "when the Location header is empty in the response" in {
+
+        when(mockAddressLookupConnector.initJourney(any(), any())) thenReturn HttpResponse(
+          ACCEPTED,
+          ""
+        )
+
+        await(sut.initialiseAddressLookupJourney.value) shouldBe None
+      }
+
+      "the connector returns a 4xx status code" in {
+
+        when(mockAddressLookupConnector.initJourney(any(), any())) thenReturn HttpResponse(
+          BAD_REQUEST,
+          ""
+        )
+
+        await(sut.initialiseAddressLookupJourney.value) shouldBe None
+      }
+
+      "the connector returns a 5xx status code" in {
+
+        when(mockAddressLookupConnector.initJourney(any(), any())) thenReturn HttpResponse(
+          INTERNAL_SERVER_ERROR,
+          ""
+        )
+
+        await(sut.initialiseAddressLookupJourney.value) shouldBe None
+      }
     }
   }
 }

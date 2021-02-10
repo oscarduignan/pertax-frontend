@@ -55,6 +55,9 @@ class ConfigDecorator @Inject()(
   lazy val addTaxesFrontendUrl: String = servicesConfig.baseUrl("add-taxes-frontend")
   lazy val addTaxesPtaOrigin: String = "pta-sa"
 
+  lazy val addressLookupFrontendService = servicesConfig.baseUrl("address-lookup-frontend")
+  lazy val addressLookupContinueUrl = s"$pertaxFrontendHost/personal-account/your-address/retrieve-address"
+
   private def getExternalUrl(key: String): Option[String] =
     runModeConfiguration.getOptional[String](s"external-url.$key")
 

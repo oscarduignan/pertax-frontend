@@ -23,6 +23,7 @@ import controllers.controllershelpers.AddressJourneyCachingHelper
 import error.ErrorRenderer
 import models.dto.AddressDto
 import models._
+import models.addresslookup.{AddressLookupResponse, AddressLookupSuccessResponse}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach

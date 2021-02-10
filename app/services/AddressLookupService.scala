@@ -16,27 +16,25 @@
 
 package services
 
+import cats.data.OptionT
 import com.google.inject.{Inject, Singleton}
 import com.kenshoo.play.metrics.Metrics
 import config.ConfigDecorator
+import connectors.AddressLookupConnector
 import metrics._
-import models.addresslookup.RecordSet
+import models.addresslookup._
 import play.api.Logger
+import play.api.http.Status.{ACCEPTED, OK}
 import services.http.SimpleHttp
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import util._
 
-import scala.concurrent.Future
-
-sealed trait AddressLookupResponse
-
-final case class AddressLookupSuccessResponse(addressList: RecordSet) extends AddressLookupResponse
-final case class AddressLookupUnexpectedResponse(r: HttpResponse) extends AddressLookupResponse
-final case class AddressLookupErrorResponse(cause: Exception) extends AddressLookupResponse
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class AddressLookupService @Inject()(
+  addressLookupConnector: AddressLookupConnector,
   configDecorator: ConfigDecorator,
   val simpleHttp: SimpleHttp,
   val metrics: Metrics,
@@ -71,5 +69,20 @@ class AddressLookupService @Inject()(
             AddressLookupErrorResponse(e)
         }
       )(newHc)
+    }
+
+  def initialiseAddressLookupJourney(implicit hc: HeaderCarrier, ec: ExecutionContext): OptionT[Future, String] =
+    OptionT {
+      addressLookupConnector.initJourney.map { response =>
+        if (response.status == ACCEPTED) response.header("Location") else None
+      }
+    }
+
+  def getAddressFromLookup(
+    id: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): OptionT[Future, AddressLookupResponseV2] =
+    OptionT {
+      addressLookupConnector.getConfirmedAddress(id) map { response =>
+        if (response.status == OK) response.json.asOpt[AddressLookupResponseV2] else None
+      }
     }
 }

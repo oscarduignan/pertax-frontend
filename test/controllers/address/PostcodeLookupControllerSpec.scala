@@ -16,12 +16,13 @@
 
 package controllers.address
 
+import cats.data.OptionT
 import controllers.bindable.{PostalAddrType, SoleAddrType}
-import models.addresslookup.RecordSet
+import models.addresslookup.{AddressLookupErrorResponse, AddressLookupResponse, AddressLookupSuccessResponse, RecordSet}
 import models.dto.{AddressFinderDto, AddressPageVisitedDto, ResidencyChoiceDto, TaxCreditsChoiceDto}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.{any, eq => meq}
-import org.mockito.Mockito.{times, verify}
+import org.mockito.Mockito.{times, verify, when}
 import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.libs.json.Json
 import play.api.mvc.Request
@@ -33,6 +34,8 @@ import uk.gov.hmrc.play.audit.model.DataEvent
 import util.Fixtures
 import util.Fixtures.{fakeStreetPafAddressRecord, oneAndTwoOtherPlacePafRecordSet}
 import views.html.personaldetails.PostcodeLookupView
+
+import scala.concurrent.Future
 
 class PostcodeLookupControllerSpec extends AddressBaseSpec {
 
@@ -65,81 +68,107 @@ class PostcodeLookupControllerSpec extends AddressBaseSpec {
       Map("nino" -> Fixtures.fakeNino.nino, "postcode" -> postcode),
       dataEvent.generatedAt
     )
+
+    val redirectUrl = "/foo"
   }
 
   "onPageLoad" should {
 
-    "return 200 if the user has entered a residency choice on the previous page" in new LocalSetup {
-      override def sessionCacheResponse: Option[CacheMap] =
-        Some(CacheMap("id", Map("soleResidencyChoiceDto" -> Json.toJson(ResidencyChoiceDto(SoleAddrType)))))
+    "redirect to address lookup journey" when {
 
-      val result = controller.onPageLoad(SoleAddrType)(FakeRequest())
+      "the user has entered a residency choice on the previous page" in new LocalSetup {
+        override def sessionCacheResponse: Option[CacheMap] =
+          Some(CacheMap("id", Map("soleResidencyChoiceDto" -> Json.toJson(ResidencyChoiceDto(SoleAddrType)))))
 
-      status(result) shouldBe OK
-      verify(mockLocalSessionCache, times(1)).fetch()(any(), any())
+        when(mockAddressLookupService.initialiseAddressLookupJourney(any(), any())) thenReturn OptionT[Future, String](
+          Future.successful(Some(redirectUrl)))
+
+        val result = controller.onPageLoad(SoleAddrType)(FakeRequest())
+
+        status(result) shouldBe SEE_OTHER
+        redirectLocation(result) shouldBe Some(redirectUrl)
+        verify(mockLocalSessionCache).fetch()(any(), any())
+      }
+
+      "the user is on correspondence address journey and has postal address type" in new LocalSetup {
+        override def sessionCacheResponse: Option[CacheMap] =
+          Some(CacheMap("id", Map("addressPageVisitedDto" -> Json.toJson(AddressPageVisitedDto(true)))))
+
+        when(mockAddressLookupService.initialiseAddressLookupJourney(any(), any())) thenReturn OptionT[Future, String](
+          Future.successful(Some(redirectUrl)))
+
+        val result = controller.onPageLoad(PostalAddrType)(FakeRequest())
+
+        status(result) shouldBe SEE_OTHER
+        redirectLocation(result) shouldBe Some(redirectUrl)
+        verify(mockLocalSessionCache).fetch()(any(), any())
+      }
     }
 
-    "return 200 if the user is on correspondence address journey and has postal address type" in new LocalSetup {
-      override def sessionCacheResponse: Option[CacheMap] =
-        Some(CacheMap("id", Map("addressPageVisitedDto" -> Json.toJson(AddressPageVisitedDto(true)))))
+    "redirect to the beginning of the journey" when {
+      "the user has not indicated Residency choice on previous page" in new LocalSetup {
+        override def sessionCacheResponse: Option[CacheMap] = None
 
-      val result = controller.onPageLoad(PostalAddrType)(FakeRequest())
+        val result = controller.onPageLoad(SoleAddrType)(FakeRequest())
 
-      status(result) shouldBe OK
-      verify(mockLocalSessionCache, times(1)).fetch()(any(), any())
+        status(result) shouldBe SEE_OTHER
+        verify(mockLocalSessionCache, times(1)).fetch()(any(), any())
+        redirectLocation(result) shouldBe Some("/personal-account/personal-details")
+      }
+
+      "the user has not visited your-address page on correspondence journey" in new LocalSetup {
+        override def sessionCacheResponse: Option[CacheMap] = None
+
+        val result = controller.onPageLoad(PostalAddrType)(FakeRequest())
+
+        status(result) shouldBe SEE_OTHER
+        verify(mockLocalSessionCache, times(1)).fetch()(any(), any())
+        redirectLocation(result) shouldBe Some("/personal-account/personal-details")
+      }
     }
 
-    "redirect to the beginning of the journey when user has not indicated Residency choice on previous page" in new LocalSetup {
-      override def sessionCacheResponse: Option[CacheMap] = None
+    "verify an audit event has been sent for a user" when {
 
-      val result = controller.onPageLoad(SoleAddrType)(FakeRequest())
+      "the user clicks the change address link" in new LocalSetup {
 
-      status(result) shouldBe SEE_OTHER
-      verify(mockLocalSessionCache, times(1)).fetch()(any(), any())
-      redirectLocation(result) shouldBe Some("/personal-account/personal-details")
-    }
+        override def sessionCacheResponse: Option[CacheMap] =
+          Some(
+            CacheMap(
+              "id",
+              Map(
+                "addressPageVisitedDto"  -> Json.toJson(AddressPageVisitedDto(true)),
+                "soleResidencyChoiceDto" -> Json.toJson(ResidencyChoiceDto(SoleAddrType)))))
 
-    "redirect to the beginning of the journey when user has not visited your-address page on correspondence journey" in new LocalSetup {
-      override def sessionCacheResponse: Option[CacheMap] = None
+        when(mockAddressLookupService.initialiseAddressLookupJourney(any(), any())) thenReturn OptionT[Future, String](
+          Future.successful(Some(redirectUrl)))
 
-      val result = controller.onPageLoad(PostalAddrType)(FakeRequest())
+        val result = controller.onPageLoad(SoleAddrType)(FakeRequest())
 
-      status(result) shouldBe SEE_OTHER
-      verify(mockLocalSessionCache, times(1)).fetch()(any(), any())
-      redirectLocation(result) shouldBe Some("/personal-account/personal-details")
-    }
+        status(result) shouldBe SEE_OTHER
+        redirectLocation(result) shouldBe Some(redirectUrl)
+        verify(mockLocalSessionCache, times(1)).fetch()(any(), any())
 
-    "verify an audit event has been sent for a user clicking the change address link" in new LocalSetup {
+        val eventCaptor = ArgumentCaptor.forClass(classOf[DataEvent])
+        verify(mockAuditConnector, times(1)).sendEvent(eventCaptor.capture())(any(), any())
+      }
 
-      override def sessionCacheResponse: Option[CacheMap] =
-        Some(
-          CacheMap(
-            "id",
-            Map(
-              "addressPageVisitedDto"  -> Json.toJson(AddressPageVisitedDto(true)),
-              "soleResidencyChoiceDto" -> Json.toJson(ResidencyChoiceDto(SoleAddrType)))))
+      "the user clicks the change postal address link" in new LocalSetup {
 
-      val result = controller.onPageLoad(SoleAddrType)(FakeRequest())
+        override def sessionCacheResponse: Option[CacheMap] =
+          Some(CacheMap("id", Map("addressPageVisitedDto" -> Json.toJson(AddressPageVisitedDto(true)))))
 
-      status(result) shouldBe OK
-      verify(mockLocalSessionCache, times(1)).fetch()(any(), any())
+        when(mockAddressLookupService.initialiseAddressLookupJourney(any(), any())) thenReturn OptionT[Future, String](
+          Future.successful(Some(redirectUrl)))
 
-      val eventCaptor = ArgumentCaptor.forClass(classOf[DataEvent])
-      verify(mockAuditConnector, times(1)).sendEvent(eventCaptor.capture())(any(), any())
-    }
+        val result = controller.onPageLoad(PostalAddrType)(FakeRequest())
 
-    "verify an audit event has been sent for a user clicking the change postal address link" in new LocalSetup {
+        status(result) shouldBe SEE_OTHER
+        redirectLocation(result) shouldBe Some(redirectUrl)
+        verify(mockLocalSessionCache, times(1)).fetch()(any(), any())
 
-      override def sessionCacheResponse: Option[CacheMap] =
-        Some(CacheMap("id", Map("addressPageVisitedDto" -> Json.toJson(AddressPageVisitedDto(true)))))
-
-      val result = controller.onPageLoad(PostalAddrType)(FakeRequest())
-
-      status(result) shouldBe OK
-      verify(mockLocalSessionCache, times(1)).fetch()(any(), any())
-
-      val eventCaptor = ArgumentCaptor.forClass(classOf[DataEvent])
-      verify(mockAuditConnector, times(1)).sendEvent(eventCaptor.capture())(any(), any())
+        val eventCaptor = ArgumentCaptor.forClass(classOf[DataEvent])
+        verify(mockAuditConnector, times(1)).sendEvent(eventCaptor.capture())(any(), any())
+      }
     }
   }
 

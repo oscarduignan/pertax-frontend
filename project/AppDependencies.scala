@@ -18,7 +18,8 @@ object AppDependencies {
     "uk.gov.hmrc"         %% "auth-client"              % "3.0.0-play-26",
     "org.reactivemongo"   %% "play2-reactivemongo"      % "0.18.6-play26",
     "io.lemonlabs"        %% "scala-uri"                % "2.2.3",
-    "com.typesafe.play"   %% "play-json-joda"           % "2.6.10"
+    "com.typesafe.play"   %% "play-json-joda"           % "2.6.10",
+    "org.typelevel"       %% "cats-core"                % "2.3.1"
   )
 
   val test = Seq(

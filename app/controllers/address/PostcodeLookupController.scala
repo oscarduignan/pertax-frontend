@@ -16,19 +16,22 @@
 
 package controllers.address
 
+import cats.data.OptionT
+import cats.implicits._
 import com.google.inject.Inject
 import config.ConfigDecorator
 import controllers.auth.requests.UserRequest
 import controllers.auth.{AuthJourney, WithActiveTabAction}
 import controllers.bindable.{AddrType, PostalAddrType}
 import controllers.controllershelpers.AddressJourneyCachingHelper
-import models.addresslookup.RecordSet
+import models.addresslookup.{AddressLookupErrorResponse, AddressLookupResponse, AddressLookupResponseV2, AddressLookupSuccessResponse, AddressLookupUnexpectedResponse, AddressV2, RecordSet}
 import models.dto.{AddressFinderDto, InternationalAddressChoiceDto}
 import models.{AddressFinderDtoId, SelectedAddressRecordId, SelectedRecordSetId, SubmittedInternationalAddressChoiceId}
 import play.api.Logger
 import play.api.data.FormError
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import services._
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.renderer.TemplateRenderer
 import util.AuditServiceTools.{buildAddressChangeEvent, buildEvent}
@@ -67,18 +70,35 @@ class PostcodeLookupController @Inject()(
                   personDetails,
                   isInternationalAddress = false))
               cachingHelper.enforceDisplayAddressPageVisited(journeyData.addressPageVisitedDto) {
-                Future.successful(Ok(postcodeLookupView(AddressFinderDto.form, typ)))
+                redirectToAddressLookupService
               }
             case _ =>
               auditConnector.sendEvent(
                 buildAddressChangeEvent("mainAddressChangeLinkClicked", personDetails, isInternationalAddress = false))
               cachingHelper.enforceResidencyChoiceSubmitted(journeyData) { _ =>
-                Future.successful(Ok(postcodeLookupView(AddressFinderDto.form, typ)))
+                redirectToAddressLookupService
               }
           }
         }
       }
     }
+
+  def retrieveAddressFromLookup(id: String) = authenticate.async { implicit request =>
+    addressJourneyEnforcer { _ => personDetails =>
+      addressLookupService.getAddressFromLookup(id).fold(error) { response =>
+        auditConnector.sendEvent(
+          buildEvent(
+            "addressLookupResults",
+            "find_address",
+            Map("address" -> Some(response.address.toString), "id" -> response.id)
+          )
+        )
+
+        //TODO cache the address
+        Ok(response.address.toString)
+      }
+    }
+  }
 
   def onSubmit(typ: AddrType, back: Option[Boolean] = None): Action[AnyContent] =
     authenticate.async { implicit request =>
@@ -169,4 +189,11 @@ class PostcodeLookupController @Inject()(
       }
       addressLookupService.lookup(postcode, filter).flatMap(handleError orElse f)
     }
+
+  private def redirectToAddressLookupService(implicit hc: HeaderCarrier): Future[Result] =
+    addressLookupService.initialiseAddressLookupJourney.fold(
+      error
+    )(redirectUrl => Redirect(redirectUrl))
+
+  private def error = InternalServerError("oops")
 }
