@@ -21,6 +21,7 @@ import com.kenshoo.play.metrics.Metrics
 import metrics.HasMetrics
 import play.api.Logger
 import play.api.http.Status._
+import services.IdentityVerificationSuccessResponse.TechnicalIssue
 import services.http.SimpleHttp
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
@@ -40,6 +41,7 @@ object IdentityVerificationSuccessResponse {
   val InsufficientEvidence = "InsufficientEvidence"
   val LockedOut = "LockedOut"
   val UserAborted = "UserAborted"
+  val FailedIV = "FailedIV"
   val Timeout = "Timeout"
   val TechnicalIssue = "TechnicalIssue"
   val PrecondFailed = "PreconditionFailed"
@@ -61,7 +63,12 @@ class IdentityVerificationFrontendService @Inject()(
         s"$identityVerificationFrontendUrl/mdtp/journey/journeyId/$journeyId")(
         onComplete = {
           case r if r.status >= 200 && r.status < 300 =>
-            t.completeTimerAndIncrementSuccessCounter()
+            if ((r.json \ "result").asOpt[String].get != TechnicalIssue) {
+              t.completeTimerAndIncrementSuccessCounter()
+            } else {
+              t.completeTimerAndIncrementFailedCounter()
+            }
+
             val result = List((r.json \ "journeyResult").asOpt[String], (r.json \ "result").asOpt[String]).flatten.head //FIXME - dont use head
             IdentityVerificationSuccessResponse(result)
 

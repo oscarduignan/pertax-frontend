@@ -69,6 +69,19 @@ class IdentityVerificationFrontendServiceSpec extends BaseSpec {
       verify(timer, times(1)).stop()
     }
 
+    "return an IdentityVerificationSuccessResponse containing TechnicalIssues and increment failure count when TechnicalIssues is present in json" in new SpecSetup {
+      override lazy val httpResponse =
+        HttpResponse(OK, Some(Json.obj("token" -> "1234", "result" -> "TechnicalIssue")))
+      override lazy val simulateIdentityVerificationFrontendIsDown = false
+
+      val result = service.getIVJourneyStatus("1235").futureValue
+
+      result mustBe IdentityVerificationSuccessResponse("TechnicalIssue")
+      verify(metrics, times(1)).startTimer(metricId)
+      verify(metrics, times(1)).incrementFailedCounter(metricId)
+      verify(timer, times(1)).stop()
+    }
+
     "return IdentityVerificationNotFoundResponse when called with a journeyId that causes a NOT FOUND response" in new SpecSetup {
       override lazy val httpResponse = HttpResponse(NOT_FOUND)
       override lazy val simulateIdentityVerificationFrontendIsDown = false

@@ -90,6 +90,10 @@ class ApplicationController @Inject()(
               logErrorMessage(PrecondFailed)
               Unauthorized(cannotConfirmIdentityView(retryUrl))
 
+            case IdentityVerificationSuccessResponse(FailedIV) =>
+              logErrorMessage(FailedIV)
+              Unauthorized(cannotConfirmIdentityView(retryUrl))
+
             case IdentityVerificationSuccessResponse(LockedOut) =>
               logErrorMessage(LockedOut)
               Unauthorized(lockedOutView(allowContinue = false))
