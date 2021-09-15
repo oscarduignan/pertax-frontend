@@ -106,14 +106,7 @@ class PersonalDetailsController @Inject() (
                           )
         ninoToDisplay <- ninoDisplayService.getNino
 
-        personalDetails = personalDetailsViewModel
-                            .getPersonDetailsTable(addressModel, ninoToDisplay)
-        trustedHelpers = personalDetailsViewModel.getTrustedHelpersRow
-        paperlessHelpers = personalDetailsViewModel.getPaperlessSettingsRow
-        signinDetailsHelpers = personalDetailsViewModel.getSignInDetailsRow
-        personDetails: Option[PersonDetails] = request.personDetails
-
-        _ <- personDetails
+        _ <- request.personDetails
                .map { details =>
                  auditConnector.sendEvent(
                    buildPersonDetailsEvent(
@@ -126,13 +119,20 @@ class PersonalDetailsController @Inject() (
         _ <- cachingHelper
                .addToCache(AddressPageVisitedDtoId, AddressPageVisitedDto(true))
 
-      } yield Ok(
-        personalDetailsViewV2(
-          personalDetails,
-          trustedHelpers,
-          paperlessHelpers,
-          signinDetailsHelpers
+      } yield {
+        val personalDetails = personalDetailsViewModel
+          .getPersonDetailsTable(addressModel, ninoToDisplay)
+        val trustedHelpers = personalDetailsViewModel.getTrustedHelpersRow
+        val paperlessHelpers = personalDetailsViewModel.getPaperlessSettingsRow
+        val signinDetailsHelpers = personalDetailsViewModel.getSignInDetailsRow
+        Ok(
+          personalDetailsViewV2(
+            personalDetails,
+            trustedHelpers,
+            paperlessHelpers,
+            signinDetailsHelpers
+          )
         )
-      )
+      }
     }
 }

@@ -108,5 +108,30 @@ class PersonalDetailsControllerSpec extends AddressBaseSpec {
           .sendEvent(eventCaptor.capture())(any(), any())
       }
     }
+    "Calling AddressController.onPageLoadv2" must {
+
+      "call citizenDetailsService.fakePersonDetails and return 200" in new LocalSetup {
+        override def sessionCacheResponse: Option[CacheMap] =
+          Some(
+            CacheMap(
+              "id",
+              Map(
+                "addressPageVisitedDto" -> Json
+                  .toJson(AddressPageVisitedDto(true))
+              )
+            )
+          )
+
+        val result = controller.onPageLoad()(FakeRequest())
+
+        status(result) mustBe OK
+        verify(mockLocalSessionCache, times(1))
+          .cache(
+            meq("addressPageVisitedDto"),
+            meq(AddressPageVisitedDto(true))
+          )(any(), any(), any())
+        verify(mockEditAddressLockRepository, times(1)).get(any())
+      }
+    }
   }
 }

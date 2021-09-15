@@ -19,8 +19,9 @@ package viewmodels
 import config.ConfigDecorator
 import controllers.auth.requests.UserRequest
 import controllers.controllershelpers.CountryHelper
+
 import javax.inject.{Inject, Singleton}
-import models.{AddressJourneyTTLModel, EditCorrespondenceAddress, EditPrimaryAddress, EditSoleAddress, PersonDetails}
+import models.{AddressJourneyTTLModel, EditCorrespondenceAddress, EditPrimaryAddress, EditSoleAddress, EditedAddress, PersonDetails}
 import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.domain.Nino
 import util.TemplateFunctions
@@ -35,18 +36,8 @@ class PersonalDetailsViewModel @Inject() (
   correspondenceAddressView: CorrespondenceAddressView
 ) {
 
-  private val changeMainAddressUrl =
-    if (configDecorator.taxCreditsEnabled)
-      controllers.address.routes.TaxCreditsChoiceController.onPageLoad.url
-    else controllers.address.routes.ResidencyChoiceController.onPageLoad.url
   private val changePostalAddressUrl =
     controllers.address.routes.PostalInternationalAddressChoiceController.onPageLoad.url
-  private val viewNinoUrl =
-    controllers.routes.InterstitialController.displayNationalInsurance.url
-  private val changeNameUrl = configDecorator.changeNameLinkUrl
-  private val paperlessSettingsUrl =
-    controllers.routes.PaperlessPreferencesController.managePreferences.url
-  private val trustedHelpersUrl = configDecorator.manageTrustedHelpersUrl
 
   private def getName(implicit request: UserRequest[_]) =
     request.name.map(name =>
@@ -56,7 +47,7 @@ class PersonalDetailsViewModel @Inject() (
         HtmlFormat.raw(TemplateFunctions.upperCaseToTitleCase(name)),
         "label.change",
         "label.your_name",
-        Some(changeNameUrl)
+        Some(configDecorator.changeNameLinkUrl)
       )
     )
 
@@ -70,58 +61,70 @@ class PersonalDetailsViewModel @Inject() (
         formattedNino(n),
         "label.view_national_insurance_letter",
         "",
-        Some(viewNinoUrl)
+        Some(controllers.routes.InterstitialController.displayNationalInsurance.url)
       )
     )
 
   private def getMainAddress(
     personDetails: PersonDetails,
-    isMainAddressChangeLocked: Boolean
-  )(implicit
-    messages: play.api.i18n.Messages
-  ) =
-    personDetails.address.map { address =>
-      if (isMainAddressChangeLocked)
-        PersonalDetailsTableRowModel(
-          "main_address",
-          "label.main_address",
-          addressView(address, countryHelper.excludedCountries),
-          "label.you_can_only_change_this_address_once_a_day_please_try_again_tomorrow",
-          "label.your_main_home",
-          None
-        )
-      else
-        PersonalDetailsTableRowModel(
-          "main_address",
-          "label.main_address",
-          addressView(address, countryHelper.excludedCountries),
-          "label.change",
-          "label.your_main_home",
-          Some(changeMainAddressUrl)
-        )
-    }
-
-  private def getPostalAddress(
-    personDetails: PersonDetails,
-    isCorrespondenceChangeLocked: Boolean
+    optionalEditAddress: List[EditedAddress]
   )(implicit
     messages: play.api.i18n.Messages
   ) = {
-    val optionalPostalAddress =
-      getPostalAddressIfExists(personDetails, isCorrespondenceChangeLocked)
-    if (optionalPostalAddress.isEmpty && personDetails.address.isDefined)
-      Some(
+    val isMainAddressChangeLocked = optionalEditAddress.exists(
+      _.isInstanceOf[EditSoleAddress]
+    ) || optionalEditAddress
+      .exists(_.isInstanceOf[EditPrimaryAddress])
+    personDetails.address.map { address =>
+      def createAddressRow(linkTextMessage: String, linkUrl: Option[String]) =
         PersonalDetailsTableRowModel(
-          "postal_address",
-          "label.postal_address",
-          correspondenceAddressView(None, countryHelper.excludedCountries),
-          "label.change",
-          "label.your.postal_address",
-          Some(changePostalAddressUrl)
+          "main_address",
+          "label.main_address",
+          addressView(address, countryHelper.excludedCountries),
+          linkTextMessage,
+          "label.your_main_home",
+          linkUrl
         )
-      )
-    else
-      optionalPostalAddress
+
+      if (isMainAddressChangeLocked)
+        createAddressRow("label.you_can_only_change_this_address_once_a_day_please_try_again_tomorrow", None)
+      else {
+        val changeMainAddressUrl =
+          if (configDecorator.taxCreditsEnabled)
+            controllers.address.routes.TaxCreditsChoiceController.onPageLoad.url
+          else controllers.address.routes.ResidencyChoiceController.onPageLoad.url
+
+        createAddressRow("label.change", Some(changeMainAddressUrl))
+      }
+    }
+  }
+
+  private def getPostalAddress(
+    personDetails: PersonDetails,
+    optionalEditAddress: List[EditedAddress]
+  )(implicit
+    messages: play.api.i18n.Messages
+  ) = {
+    val isCorrespondenceChangeLocked =
+      optionalEditAddress.exists(_.isInstanceOf[EditCorrespondenceAddress])
+    val postalAddress =
+      getPostalAddressIfExists(personDetails, isCorrespondenceChangeLocked)
+
+    postalAddress match {
+      case Some(address) => Some(address)
+      case _ if personDetails.address.isDefined =>
+        Some(
+          PersonalDetailsTableRowModel(
+            "postal_address",
+            "label.postal_address",
+            correspondenceAddressView(None, countryHelper.excludedCountries),
+            "label.change",
+            "label.your.postal_address",
+            Some(changePostalAddressUrl)
+          )
+        )
+      case _ => None
+    }
   }
 
   private def getPostalAddressIfExists(
@@ -130,35 +133,24 @@ class PersonalDetailsViewModel @Inject() (
   )(implicit
     messages: play.api.i18n.Messages
   ) =
-    if (!personDetails.correspondenceAddress.exists(_.isWelshLanguageUnit))
-      personDetails.correspondenceAddress.map { correspondenceAddress =>
-        if (isCorrespondenceChangeLocked)
-          PersonalDetailsTableRowModel(
-            "postal_address",
-            "label.postal_address",
-            correspondenceAddressView(
-              Some(correspondenceAddress),
-              countryHelper.excludedCountries
-            ),
-            "label.you_can_only_change_this_address_once_a_day_please_try_again_tomorrow",
-            "label.your.postal_address",
-            None
-          )
-        else
-          PersonalDetailsTableRowModel(
-            "postal_address",
-            "label.postal_address",
-            correspondenceAddressView(
-              Some(correspondenceAddress),
-              countryHelper.excludedCountries
-            ),
-            "label.change",
-            "label.your.postal_address",
-            Some(changePostalAddressUrl)
-          )
-      }
-    else
-      None
+    personDetails.correspondenceAddress.find(!_.isWelshLanguageUnit).map { correspondenceAddress =>
+      def createRow(linkTextMessage: String, linkUrl: Option[String]) =
+        PersonalDetailsTableRowModel(
+          "postal_address",
+          "label.postal_address",
+          correspondenceAddressView(
+            Some(correspondenceAddress),
+            countryHelper.excludedCountries
+          ),
+          linkTextMessage,
+          "label.your.postal_address",
+          linkUrl
+        )
+      if (isCorrespondenceChangeLocked)
+        createRow("label.you_can_only_change_this_address_once_a_day_please_try_again_tomorrow", None)
+      else
+        createRow("label.change", Some(changePostalAddressUrl))
+    }
 
   def getPersonDetailsTable(
     changedAddressIndicator: List[AddressJourneyTTLModel],
@@ -167,22 +159,16 @@ class PersonalDetailsViewModel @Inject() (
     request: UserRequest[_],
     messages: play.api.i18n.Messages
   ): Seq[PersonalDetailsTableRowModel] = {
-
     val optionalEditAddress = changedAddressIndicator.map(y => y.editedAddress)
-    val isMainAddressChangeLocked = optionalEditAddress.exists(
-      _.isInstanceOf[EditSoleAddress]
-    ) || optionalEditAddress
-      .exists(_.isInstanceOf[EditPrimaryAddress])
-    val isCorrespondenceChangeLocked =
-      optionalEditAddress.exists(_.isInstanceOf[EditCorrespondenceAddress])
 
+    /// TODO - Tidy up and remove getOrElse
     val nameRow = getName
     val ninoRow = getNationalInsurance(ninoToDisplay)
     val mainAddressRow = request.personDetails
-      .map(getMainAddress(_, isMainAddressChangeLocked))
+      .map(getMainAddress(_, optionalEditAddress))
       .getOrElse(None)
     val postalAddressRow = request.personDetails
-      .map(getPostalAddress(_, isCorrespondenceChangeLocked))
+      .map(getPostalAddress(_, optionalEditAddress))
       .getOrElse(None)
 
     Seq(
@@ -191,7 +177,6 @@ class PersonalDetailsViewModel @Inject() (
       mainAddressRow,
       postalAddressRow
     ).flatten[PersonalDetailsTableRowModel]
-
   }
 
   def getTrustedHelpersRow(implicit
@@ -206,7 +191,7 @@ class PersonalDetailsViewModel @Inject() (
           HtmlFormat.raw(messages("label.manage_trusted_helpers")),
           "label.change",
           "label.your_trusted_helpers",
-          Some(trustedHelpersUrl)
+          Some(configDecorator.manageTrustedHelpersUrl)
         )
       )
     else None
@@ -223,7 +208,7 @@ class PersonalDetailsViewModel @Inject() (
           HtmlFormat.raw(messages("label.go_paperless_content")),
           "label.change",
           "label.your_paperless_settings",
-          Some(paperlessSettingsUrl)
+          Some(controllers.routes.PaperlessPreferencesController.managePreferences.url)
         )
       )
     else None
