@@ -160,16 +160,12 @@ class PersonalDetailsViewModel @Inject() (
     messages: play.api.i18n.Messages
   ): Seq[PersonalDetailsTableRowModel] = {
     val optionalEditAddress = changedAddressIndicator.map(y => y.editedAddress)
-
-    /// TODO - Tidy up and remove getOrElse
-    val nameRow = getName
-    val ninoRow = getNationalInsurance(ninoToDisplay)
-    val mainAddressRow = request.personDetails
-      .map(getMainAddress(_, optionalEditAddress))
-      .getOrElse(None)
-    val postalAddressRow = request.personDetails
-      .map(getPostalAddress(_, optionalEditAddress))
-      .getOrElse(None)
+    val nameRow: Option[PersonalDetailsTableRowModel] = getName
+    val ninoRow: Option[PersonalDetailsTableRowModel] = getNationalInsurance(ninoToDisplay)
+    val mainAddressRow: Option[PersonalDetailsTableRowModel] = request.personDetails
+      .flatMap(getMainAddress(_, optionalEditAddress))
+    val postalAddressRow: Option[PersonalDetailsTableRowModel] = request.personDetails
+      .flatMap(getPostalAddress(_, optionalEditAddress))
 
     Seq(
       nameRow,
