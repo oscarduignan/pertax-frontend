@@ -278,7 +278,7 @@ class MainViewSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite {
 
         "a trusted helper is set in the request" in new LocalSetup {
           val principalName = "John Doe"
-          val url = "/return-url"
+          val url = "/return-urlGet"
           val helper = TrustedHelper(
             principalName,
             "Attorney name",
@@ -291,7 +291,7 @@ class MainViewSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite {
           doc.getElementById("attorneyBanner") mustBe an[Element]
 
           assertContainsText(doc, principalName)
-          assertContainsLink(doc, "Return to your own account", "/return-url")
+          assertContainsLink(doc, "Return to your own account", "/return-urlGet")
         }
       }
 

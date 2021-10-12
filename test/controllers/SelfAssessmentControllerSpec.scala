@@ -182,7 +182,7 @@ class SelfAssessmentControllerSpec extends BaseSpec with CurrentTaxYear {
 
   "redirectToEnrolForSa" must {
 
-    "redirect to the url returned by the SelfAssessmentService" in new LocalSetup {
+    "redirect to the urlGet returned by the SelfAssessmentService" in new LocalSetup {
 
       val redirectUrl = "/foo"
 
@@ -191,7 +191,7 @@ class SelfAssessmentControllerSpec extends BaseSpec with CurrentTaxYear {
       redirectLocation(controller.redirectToEnrolForSa(FakeRequest())) mustBe Some(redirectUrl)
     }
 
-    "show an error page if no url is returned" in new LocalSetup {
+    "show an error page if no urlGet is returned" in new LocalSetup {
 
       when(mockSelfAssessmentService.getSaEnrolmentUrl(any(), any())) thenReturn Future.successful(None)
 

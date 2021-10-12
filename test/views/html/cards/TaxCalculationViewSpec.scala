@@ -62,7 +62,7 @@ class TaxCalculationViewSpec extends ViewSpec {
       )
     }
 
-    "render the given url correctly" in {
+    "render the given urlGet correctly" in {
 
       hasLink(
         doc,

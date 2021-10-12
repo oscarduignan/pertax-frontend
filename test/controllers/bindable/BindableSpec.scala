@@ -29,21 +29,21 @@ class BindableSpec extends BaseSpec with Injecting {
     "return the key and the ContinueUrl" in {
 
       controllers.bindable.continueUrlBinder
-        .unbind("continue", SafeRedirectUrl("/relative/url")) mustBe "continue=%2Frelative%2Furl"
+        .unbind("continue", SafeRedirectUrl("/relative/urlGet")) mustBe "continue=%2Frelative%2Furl"
     }
   }
 
   "Calling continueUrlBinder.bind" should {
 
-    "return an url when called with a relative url" in {
+    "return an urlGet when called with a relative urlGet" in {
 
-      val url = "/relative/url"
+      val url = "/relative/urlGet"
       controllers.bindable.continueUrlBinder.bind("continue", Map("continue" -> Seq(url))) mustBe Some(
         Right(SafeRedirectUrl(url))
       )
     }
 
-    "return error when not url" in {
+    "return error when not urlGet" in {
 
       val url = "gtuygyg"
       controllers.bindable.continueUrlBinder.bind("continue", Map("continue" -> Seq(url))) mustBe Some(

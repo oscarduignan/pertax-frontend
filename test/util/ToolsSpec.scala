@@ -24,7 +24,7 @@ class ToolsSpec extends BaseSpec {
 
   "Calling urlEncode" must {
 
-    "return encoded url for http://www.gov.uk?paramOne=1&paramTwo=2" in {
+    "return encoded urlGet for http://www.gov.uk?paramOne=1&paramTwo=2" in {
       tools.urlEncode(
         "http://www.gov.uk?paramOne=1&paramTwo=2"
       ) mustBe "http%3A%2F%2Fwww.gov.uk%3FparamOne%3D1%26paramTwo%3D2"
@@ -33,7 +33,7 @@ class ToolsSpec extends BaseSpec {
 
   "Calling encryptAndEncode" must {
 
-    "return encrypted and encoded url for http://www.gov.uk?paramOne=1&paramTwo=2" in {
+    "return encrypted and encoded urlGet for http://www.gov.uk?paramOne=1&paramTwo=2" in {
       tools.encryptAndEncode(
         "http://www.gov.uk?paramOne=1&paramTwo=2"
       ) mustBe "gxiBIOGIbn6eyoQ1PgijeECP4%2F8Ws7lUHnpPikndMN76jtk0UZawzrY2sYqwHMJU"

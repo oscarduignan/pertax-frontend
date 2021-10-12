@@ -319,7 +319,7 @@ class StartDateControllerSpec extends AddressBaseSpec {
       status(result) mustBe BAD_REQUEST
     }
 
-    "redirect to correct successful url when supplied with startDate after recorded with sole address type" in new LocalSetup {
+    "redirect to correct successful urlGet when supplied with startDate after recorded with sole address type" in new LocalSetup {
 
       override def sessionCacheResponse: Option[CacheMap] =
         Some(CacheMap("id", Map("addressPageVisitedDto" -> Json.toJson(AddressPageVisitedDto(true)))))
@@ -334,7 +334,7 @@ class StartDateControllerSpec extends AddressBaseSpec {
       redirectLocation(result) mustBe Some("/personal-account/your-address/sole/changes")
     }
 
-    "redirect to correct successful url when supplied with startDate after startDate on record with primary address" in new LocalSetup {
+    "redirect to correct successful urlGet when supplied with startDate after startDate on record with primary address" in new LocalSetup {
 
       override def sessionCacheResponse: Option[CacheMap] =
         Some(CacheMap("id", Map("addressPageVisitedDto" -> Json.toJson(AddressPageVisitedDto(true)))))

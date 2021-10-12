@@ -47,7 +47,9 @@ class MainContentHeaderSpec extends ViewSpec {
 
     "show breadcrumb when one is passed" in {
       val document =
-        asDocument(view(None, None, List(("/url", "Link Text"), ("/url2", "Link Text 2")), true, None, None).toString)
+        asDocument(
+          view(None, None, List(("/urlGet", "Link Text"), ("/url2", "Link Text 2")), true, None, None).toString
+        )
       val doc = asDocument(document.select("#global-breadcrumb").toString)
 
       doc.select("a").size() mustBe 2

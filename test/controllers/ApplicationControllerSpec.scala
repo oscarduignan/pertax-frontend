@@ -166,7 +166,7 @@ class ApplicationControllerSpec extends BaseSpec with CurrentTaxYear {
 
       override lazy val getIVJourneyStatusResponse = IdentityVerificationSuccessResponse("Success")
 
-      val result = controller.showUpliftJourneyOutcome(Some(SafeRedirectUrl("/relative/url")))(
+      val result = controller.showUpliftJourneyOutcome(Some(SafeRedirectUrl("/relative/urlGet")))(
         buildFakeRequestWithAuth("GET", "/?journeyId=XXXXX")
       )
       status(result) mustBe OK
@@ -279,7 +279,7 @@ class ApplicationControllerSpec extends BaseSpec with CurrentTaxYear {
 
   "Calling ApplicationController.signout" must {
 
-    "redirect to government gateway sign-out link with correct continue url when signed in with government gateway with a continue URL and no origin" in new LocalSetup {
+    "redirect to government gateway sign-out link with correct continue urlGet when signed in with government gateway with a continue URL and no origin" in new LocalSetup {
 
       when(mockAuthJourney.minimumAuthWithSelfAssessment).thenReturn(new ActionBuilderFixture {
         override def invokeBlock[A](request: Request[A], block: UserRequest[A] => Future[Result]): Future[Result] =
@@ -294,7 +294,7 @@ class ApplicationControllerSpec extends BaseSpec with CurrentTaxYear {
         "http://localhost:9553/bas-gateway/sign-out-without-state?continue=/personal-account"
       )
     }
-    "redirect to verify sign-out link with correct continue url when signed in with verify, a continue URL and no origin" in new LocalSetup {
+    "redirect to verify sign-out link with correct continue urlGet when signed in with verify, a continue URL and no origin" in new LocalSetup {
 
       when(mockAuthJourney.minimumAuthWithSelfAssessment).thenReturn(new ActionBuilderFixture {
         override def invokeBlock[A](request: Request[A], block: UserRequest[A] => Future[Result]): Future[Result] =
@@ -313,7 +313,7 @@ class ApplicationControllerSpec extends BaseSpec with CurrentTaxYear {
       session(result).get("postLogoutPage") mustBe Some("/personal-account")
     }
 
-    "redirect to government gateway sign-out link with correct continue url when signed in with government gateway with no continue URL but an origin" in new LocalSetup {
+    "redirect to government gateway sign-out link with correct continue urlGet when signed in with government gateway with no continue URL but an origin" in new LocalSetup {
 
       when(mockAuthJourney.minimumAuthWithSelfAssessment).thenReturn(new ActionBuilderFixture {
         override def invokeBlock[A](request: Request[A], block: UserRequest[A] => Future[Result]): Future[Result] =
@@ -345,7 +345,7 @@ class ApplicationControllerSpec extends BaseSpec with CurrentTaxYear {
 
     }
 
-    "redirect to verify sign-out link with correct continue url when signed in with verify, with no continue URL and but an origin" in new LocalSetup {
+    "redirect to verify sign-out link with correct continue urlGet when signed in with verify, with no continue URL and but an origin" in new LocalSetup {
 
       when(mockAuthJourney.minimumAuthWithSelfAssessment).thenReturn(new ActionBuilderFixture {
         override def invokeBlock[A](request: Request[A], block: UserRequest[A] => Future[Result]): Future[Result] =
@@ -382,7 +382,7 @@ class ApplicationControllerSpec extends BaseSpec with CurrentTaxYear {
 
     }
 
-    "return see other when supplied with an absolute url" in new LocalSetup {
+    "return see other when supplied with an absolute urlGet" in new LocalSetup {
 
       when(mockAuthJourney.minimumAuthWithSelfAssessment).thenReturn(new ActionBuilderFixture {
         override def invokeBlock[A](request: Request[A], block: UserRequest[A] => Future[Result]): Future[Result] =

@@ -97,7 +97,7 @@ class SaWrongCredentialsControllerSpec extends BaseSpec {
   }
 
   "ggSignInUrl" must {
-    "be the gg-sign in url" in {
+    "be the gg-sign in urlGet" in {
       controller.ggSignInUrl mustBe "http://localhost:9553/bas-gateway/sign-in?continue_url=http://localhost:9232/personal-account&accountType=individual&origin=PERTAX"
     }
   }

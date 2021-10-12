@@ -14,22 +14,12 @@
  * limitations under the License.
  */
 
-package models
+package models.addresslookup
 
-import play.api.libs.json.Json
-import util.BaseSpec
+import play.api.libs.json.{Json, Writes}
 
-class PayApiModelsSpec extends BaseSpec {
+case class AddressLookup(postcode: String, filter: Option[String])
 
-  "CreatePayment" must {
-
-    "serialise and de-serialise json" in {
-
-      val obj = CreatePayment("123", "/fake-urlGet/suffix")
-
-      val json = Json.toJson(obj)
-
-      json.as[CreatePayment] mustBe obj
-    }
-  }
+object AddressLookup {
+  implicit val writes: Writes[AddressLookup] = Json.writes[AddressLookup]
 }

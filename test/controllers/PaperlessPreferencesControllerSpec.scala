@@ -54,7 +54,7 @@ class PaperlessPreferencesControllerSpec extends BaseSpec with MockitoSugar {
     )(config, templateRenderer, ec) {}
 
   "Calling PaperlessPreferencesController.managePreferences" must {
-    "Redirect to  preferences-frontend manage paperless url when a user is logged in using GG" in {
+    "Redirect to  preferences-frontend manage paperless urlGet when a user is logged in using GG" in {
 
       when(mockAuthJourney.authWithPersonalDetails).thenReturn(new ActionBuilderFixture {
         override def invokeBlock[A](request: Request[A], block: UserRequest[A] => Future[Result]): Future[Result] =
