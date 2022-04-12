@@ -8,6 +8,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, route}
 import play.api.test.Helpers.{status => getStatus, _}
 import testUtils.IntegrationSpec
+import uk.gov.hmrc.http.HeaderNames
 
 
 class RLSInterruptPageSpec extends IntegrationSpec {
@@ -51,9 +52,9 @@ class RLSInterruptPageSpec extends IntegrationSpec {
         server.stubFor(get(urlEqualTo(s"/citizen-details/$generatedNino/designatory-details"))
           .willReturn(ok(designatoryDetails)))
 
-        val request = FakeRequest(GET, url)
+        val request = FakeRequest(GET, url).withHeaders(HeaderNames.authorisation -> "Bearer 1")
 
-        val result = route(fakeApplication(), request)
+        val result = route(app, request)
 
         result.map(getStatus) mustBe Some(SEE_OTHER)
         result.map(redirectLocation) mustBe Some(Some("/personal-account/update-your-address"))
@@ -94,7 +95,7 @@ class RLSInterruptPageSpec extends IntegrationSpec {
 
         val request = FakeRequest(GET, url)
 
-        val result = route(fakeApplication(), request)
+        val result = route(app, request)
 
         result.map(getStatus) mustBe Some(SEE_OTHER)
         result.map(redirectLocation) mustBe Some(Some("/personal-account/update-your-address"))
@@ -145,7 +146,7 @@ class RLSInterruptPageSpec extends IntegrationSpec {
 
         val request = FakeRequest(GET, url)
 
-        val result = route(fakeApplication(), request)
+        val result = route(app, request)
 
         result.map(getStatus) mustBe Some(SEE_OTHER)
         result.map(redirectLocation) mustBe Some(Some("/personal-account/update-your-address"))
@@ -200,7 +201,7 @@ class RLSInterruptPageSpec extends IntegrationSpec {
 
       val request = FakeRequest(GET, url)
 
-      val result = route(fakeApplication(), request)
+      val result = route(app, request)
 
       result.map(getStatus) mustBe Some(OK)
     }
