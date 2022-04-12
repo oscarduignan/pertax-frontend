@@ -20,7 +20,8 @@ object AppDependencies {
     "uk.gov.hmrc"         %% "domain"                   % s"8.0.0-$playVersion",
     "uk.gov.hmrc.mongo"   %% s"hmrc-mongo-$playVersion" % "0.62.0",
     "io.lemonlabs"        %% "scala-uri"                % "2.2.3",
-    "com.typesafe.play"   %% "play-json-joda"           % "2.6.10"
+    "com.typesafe.play"   %% "play-json-joda"           % "2.6.10",
+    "org.apache.xmlgraphics" % "fop" % "2.7"
   )
 
   val test = Seq(

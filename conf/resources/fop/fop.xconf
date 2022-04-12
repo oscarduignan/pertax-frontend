@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<fop version="1.0">
+    <base>./</base>
+
+    <accessibility>true</accessibility>
+    <renderers>
+        <renderer mime="application/pdf">
+            <pdf-a-mode>PDF/A-3a</pdf-a-mode>
+            <version>1.4</version>
+            <fonts>
+                <font embed-url="fonts/LiberationSans-Regular.ttf" kerning="yes" sub-font="LiberationSans">
+                    <font-triplet name="LiberationSans" style="normal" weight="normal"/>
+                </font>
+                <font embed-url="fonts/LiberationSans-Bold.ttf" kerning="yes" sub-font="LiberationSans-Bold">
+                    <font-triplet name="LiberationSans" style="normal" weight="700"/>
+                </font>
+                <substitutions>
+                                <substitution>
+                                    <from font-family="Helvetica" />
+                                    <to font-family="LiberationSans" />
+                                </substitution>
+                                <substitution>
+                                    <from font-family="Times-Bold" />
+                                    <to font-family="LiberationSans-Bold" />
+                                </substitution>
+                </substitutions>
+                <directory>./conf/resources/fop/fonts</directory>
+            </fonts>
+        </renderer>
+    </renderers>
+</fop>
