@@ -5,7 +5,8 @@
 <fo:root xmlns:fo="http://www.w3.org/1999/XSL/Format"
          xmlns:fox="http://xmlgraphics.apache.org/fop/extensions"
          xml:lang="en"
-         font-family="LiberationSans">
+         font-family="LiberationSans"
+         role="Document">
   <fo:layout-master-set>
     <fo:simple-page-master master-name="main" page-height="297mm" page-width="210mm" margin-top="1cm" margin-bottom="1cm" margin-left="2cm" margin-right="2cm">
       <fo:region-body region-name="xsl-region-body" margin-top="3cm" margin-bottom="1cm"/>
@@ -147,7 +148,7 @@
           <fo:block-container height="0.5in">
             <fo:block text-align="left">Mrs BOB JONES</fo:block>
           </fo:block-container>
-          <fo:block-container height="0.6in" border="solid 1px green" margin-bottom="0.1in" background-color="LightGreen" padding-top="0.1in">
+          <fo:block-container role="H1" height="0.6in" border="solid 1px green" margin-bottom="0.1in" background-color="LightGreen" padding-top="0.1in">
             <fo:block text-align="center" font-size="14px">Your National Insurance number is</fo:block>
             <fo:block text-align="center" font-size="18px" font-weight="bold">AA000003A</fo:block>
           </fo:block-container>
@@ -156,10 +157,10 @@
           </fo:block-container>
           <fo:block-container height="4.8in">
             <fo:block-container width="62%" left="0in" top="0in" position="absolute" margin-right="0.1in"><fo:block>
-              <fo:block font-weight="bold" margin-bottom="0.06in">@messages("label.about_your_national_insurance_number")</fo:block>
-              <fo:block>@messages("label.your_national_insurance_number_is_unique_to_you_and_will_never_change_")</fo:block>
-              <fo:block>@messages("label.you_will_need_it_if_you")
-                <fo:list-block provisional-distance-between-starts="0.3cm" provisional-label-separation="0.15cm">
+              <fo:block role="H2" font-weight="bold" margin-bottom="0.06in">@messages("label.about_your_national_insurance_number")</fo:block>
+              <fo:block role="P">@messages("label.your_national_insurance_number_is_unique_to_you_and_will_never_change_")</fo:block>
+              <fo:block role="P">@messages("label.you_will_need_it_if_you")
+                <fo:list-block role="L" provisional-distance-between-starts="0.3cm" provisional-label-separation="0.15cm">
                   @listItem(messages("label.start_work_including_part_time_and_weekend_jobs"))
                   @listItem(messages("label.apply_for_a_driving_licence"))
                   @listItem(messages("label.apply_for_a_student_loan"))
@@ -167,18 +168,18 @@
                   @listItem(messages("label.register_to_vote"))
                 </fo:list-block>
               </fo:block>
-              <fo:block>@messages("label.it_is_not_proof_of")
-                <fo:list-block provisional-distance-between-starts="0.3cm" provisional-label-separation="0.15cm">
+              <fo:block role="P">@messages("label.it_is_not_proof_of")
+                <fo:list-block role="L" provisional-distance-between-starts="0.3cm" provisional-label-separation="0.15cm">
                   @listItem(messages("label.your_identity"))
                   @listItem(messages("label.your_right_to_work_in_the_uk"))
                 </fo:list-block>
               </fo:block>
 
-              <fo:block font-weight="bold" margin-bottom="0.06in" margin-top="0.15in">@messages("label.child.trust.fund")</fo:block>
-              <fo:block>@messages("label.child.trust.fund.details")</fo:block>
-              <fo:block font-weight="bold" margin-bottom="0.06in" margin-top="0.15in">@messages("label.welsh_language")</fo:block>
-              <fo:block>@messages("label.to_continue_to_receive_a_welsh_language_service_")
-                <fo:list-block provisional-distance-between-starts="0.3cm" provisional-label-separation="0.15cm">
+              <fo:block role="H2" font-weight="bold" margin-bottom="0.06in" margin-top="0.15in">@messages("label.child.trust.fund")</fo:block>
+              <fo:block role="P">@messages("label.child.trust.fund.details")</fo:block>
+              <fo:block role="H2" font-weight="bold" margin-bottom="0.06in" margin-top="0.15in">@messages("label.welsh_language")</fo:block>
+              <fo:block role="P">@messages("label.to_continue_to_receive_a_welsh_language_service_")
+                <fo:list-block role="L" provisional-distance-between-starts="0.3cm" provisional-label-separation="0.15cm">
                 @listItem(messages("label.email.for.welsh.language"))
                 @listItem(messages("label.phone.number.for.welsh.language"))
                 </fo:list-block>
@@ -186,19 +187,19 @@
             </fo:block>
             </fo:block-container>
             <fo:block-container width="36%" left="64%" top="0in" position="absolute" background-color="LightGreen" padding="0.1in"><fo:block>
-              <fo:block font-weight="bold" margin-bottom="0.06in" border-bottom="solid 2px green">@messages("label.now_you_have_got_your") @messages("label.national_insurance_number")</fo:block>
-              <fo:block margin-top="0.015in" margin-bottom="0.06in" border-bottom="solid 2px green">@messages("label.you_can_download_and_use_the_hmrc_app_or_go_online_to")
-                <fo:list-block provisional-distance-between-starts="0.3cm" provisional-label-separation="0.15cm">
+              <fo:block role="H2" font-weight="bold" margin-bottom="0.06in" border-bottom="solid 2px green">@messages("label.now_you_have_got_your") @messages("label.national_insurance_number")</fo:block>
+              <fo:block role="P" margin-top="0.015in" margin-bottom="0.06in" border-bottom="solid 2px green">@messages("label.you_can_download_and_use_the_hmrc_app_or_go_online_to")
+                <fo:list-block role="L" provisional-distance-between-starts="0.3cm" provisional-label-separation="0.15cm">
                   @listItem(messages("label.create_and_access_your_personal_tax_account"))
                   @listItem(messages("label.update_and_track_your_tax_information_online"))
                   @listItem(messages("label.check_if_you_are_due_a_tax_refund"))
                   @listItem(messages("label.view_your_tax_code"))
                 </fo:list-block>
               </fo:block>
-              <fo:block margin-top="0.015in">@messages("label.view_more_information_about_national_insurance_at")
-                <fo:block>@messages("label.www_gov_uk_national_insurance")</fo:block>
+              <fo:block role="H2" margin-top="0.015in">@messages("label.view_more_information_about_national_insurance_at")
+                <fo:block><fo:basic-link external-destination="@messages("label.www_gov_uk_national_insurance")" color="blue">@messages("label.www_gov_uk_national_insurance")</fo:basic-link></fo:block>
                 <fo:block>@messages("label.or_our_youtube_channel_at")</fo:block>
-                <fo:block>@messages("label.www_youtube_com_hmrcgovuk")</fo:block>
+                <fo:block><fo:basic-link external-destination="@messages("label.www_youtube_com_hmrcgovuk")" color="blue">@messages("label.www_youtube_com_hmrcgovuk")</fo:basic-link></fo:block>
               </fo:block>
             </fo:block></fo:block-container>
           </fo:block-container>

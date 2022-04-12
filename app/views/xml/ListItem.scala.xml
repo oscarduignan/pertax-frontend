@@ -2,7 +2,7 @@
 
 @(item: String)
 
-<fo:list-item>
+<fo:list-item role="LI">
   <fo:list-item-label end-indent="label-end()">
     <fo:block>&#8226;</fo:block>
   </fo:list-item-label>

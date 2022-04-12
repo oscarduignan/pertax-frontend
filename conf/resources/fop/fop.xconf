@@ -5,6 +5,7 @@
     <accessibility>true</accessibility>
     <renderers>
         <renderer mime="application/pdf">
+            <pdf-ua-mode>PDF/UA-1</pdf-ua-mode>
             <pdf-a-mode>PDF/A-3a</pdf-a-mode>
             <version>1.4</version>
             <fonts>
