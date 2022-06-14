@@ -1,6 +1,7 @@
 import play.core.PlayVersion.current
 import play.sbt.PlayImport._
 import sbt._
+import play.sbt.PlayImport.ehcache
 
 object AppDependencies {
 
@@ -23,7 +24,8 @@ object AppDependencies {
     "com.typesafe.play"   %% "play-json-joda"           % "2.6.10",
     "uk.gov.hmrc"         %% "play-frontend-hmrc"       % s"3.9.0-play-28",
     "uk.gov.hmrc"         %% "play-frontend-pta"        % "0.3.0",
-    "org.jsoup"                % "jsoup"                  % "1.15.1"
+    "org.jsoup"           %  "jsoup"                    % "1.15.1",
+    ehcache
   )
 
   val test = Seq(
