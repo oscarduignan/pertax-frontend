@@ -29,16 +29,16 @@ class AdminRepositorySpec
 
         repo.collection.drop()
 
-        val data: Seq[FeatureFlag] =
-          Seq(Enabled(OnlinePaymentIntegration))
+        val data: Option[Seq[FeatureFlag]] =
+          Some(Seq(Enabled(OnlinePaymentIntegration)))
 
         whenReady(
           repo
-            .setFeatureFlags(data)
+            .setFeatureFlags(data.get)
             .flatMap(_ => repo.getFeatureFlags)
         ) {
             result =>
-              result.flags mustBe data
+              result mustBe data
           }
       }
     }

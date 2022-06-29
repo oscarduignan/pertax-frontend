@@ -45,21 +45,6 @@ class FeatureFlagControllerSpec extends BaseSpec with GuiceOneAppPerSuite {
   def fakeCSRFRequest(method: String, uri: String): FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(method, uri).withCSRFToken.asInstanceOf[FakeRequest[AnyContentAsEmpty.type]]
 
-  // A cache that doesn't cache
-  val mockCacheApi: AsyncCacheApi = new AsyncCacheApi {
-    override def set(key: String, value: Any, expiration: Duration): Future[Done] = ???
-
-    override def remove(key: String): Future[Done] = ???
-
-    override def getOrElseUpdate[A](key: String, expiration: Duration)(orElse: => Future[A])(implicit
-      evidence$1: ClassTag[A]
-    ): Future[A] = orElse
-
-    override def get[T](key: String)(implicit evidence$2: ClassTag[T]): Future[Option[T]] = ???
-
-    override def removeAll(): Future[Done] = ???
-  }
-
   val mockAdminRepository: AdminRepository = mock[AdminRepository]
 
   val mockFeatureFlagService: FeatureFlagService = mock[FeatureFlagService]

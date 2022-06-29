@@ -16,15 +16,16 @@
 
 package util
 
+import akka.Done
 import config.ConfigDecorator
-import controllers.auth.{AuthJourney, FakeAuthJourney}
 import controllers.auth.requests.UserRequest
+import controllers.auth.{AuthJourney, FakeAuthJourney}
 import models._
 import models.addresslookup.{AddressRecord, Country, RecordSet, Address => PafAddress}
 import models.dto.AddressDto
 import org.joda.time.LocalDate
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, when}
+import org.mockito.Mockito.when
 import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -32,23 +33,22 @@ import org.scalatest.{BeforeAndAfterEach, Suite}
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
+import play.api.cache.AsyncCacheApi
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.mvc._
-import play.api.test.Helpers.stubControllerComponents
 import play.api.test.{FakeRequest, Helpers}
 import play.twirl.api.Html
 import repositories.EditAddressLockRepository
-import services.AgentClientAuthorisationService
 import uk.gov.hmrc.domain.{Generator, Nino}
 import uk.gov.hmrc.http.{HeaderCarrier, SessionKeys}
 import uk.gov.hmrc.play.partials.FormPartialRetriever
 import uk.gov.hmrc.renderer.TemplateRenderer
 import uk.gov.hmrc.time.DateTimeUtils._
-import util.UserRequestFixture.buildUserRequest
 
 import java.util.UUID
+import scala.concurrent.duration.Duration
 import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
 import scala.util.Random
@@ -352,6 +352,21 @@ trait BaseSpec
       "auditing.enabled"              -> false
     )
 
+  // A cache that doesn't cache
+  val mockCacheApi: AsyncCacheApi = new AsyncCacheApi {
+    override def set(key: String, value: Any, expiration: Duration): Future[Done] = ???
+
+    override def remove(key: String): Future[Done] = ???
+
+    override def getOrElseUpdate[A](key: String, expiration: Duration)(orElse: => Future[A])(implicit
+      evidence$1: ClassTag[A]
+    ): Future[A] = orElse
+
+    override def get[T](key: String)(implicit evidence$2: ClassTag[T]): Future[Option[T]] = ???
+
+    override def removeAll(): Future[Done] = ???
+  }
+
   protected def localGuiceApplicationBuilder(
     saUser: SelfAssessmentUserType = NonFilerSelfAssessmentUser,
     personDetails: Option[PersonDetails] = None
@@ -361,7 +376,8 @@ trait BaseSpec
         bind[TemplateRenderer].toInstance(MockTemplateRenderer),
         bind[FormPartialRetriever].toInstance(mockPartialRetriever),
         bind[EditAddressLockRepository].toInstance(mockEditAddressLockRepository),
-        bind[AuthJourney].toInstance(new FakeAuthJourney(saUser, personDetails))
+        bind[AuthJourney].toInstance(new FakeAuthJourney(saUser, personDetails)),
+        bind[AsyncCacheApi].toInstance(mockCacheApi)
       )
       .configure(configValues)
 

@@ -19,7 +19,7 @@ package services.admin
 import akka.Done
 import models.admin.FeatureFlag.{Disabled, Enabled}
 import models.admin.FeatureFlagName.OnlinePaymentIntegration
-import models.admin.{FeatureFlag, FeatureFlagName, FeatureFlags}
+import models.admin.{FeatureFlag, FeatureFlagName}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
@@ -57,7 +57,7 @@ class FeatureFlagServiceSpec extends BaseSpec with ScalaFutures {
 
   "When set works in the repo returns true" in {
     val adminRepository = mock[AdminRepository]
-    when(adminRepository.getFeatureFlags).thenReturn(Future.successful(FeatureFlags(Seq.empty)))
+    when(adminRepository.getFeatureFlags).thenReturn(Future.successful(Some(Seq.empty)))
     when(adminRepository.setFeatureFlags(any())).thenReturn(Future.successful(true))
 
     val OUT = new FeatureFlagService(adminRepository, new FakeCache())
@@ -77,7 +77,7 @@ class FeatureFlagServiceSpec extends BaseSpec with ScalaFutures {
     val flagName = arbitrary[FeatureFlagName].sample.getOrElse(FeatureFlagName.OnlinePaymentIntegration)
     val OUT = new FeatureFlagService(adminRepository, new FakeCache())
 
-    when(adminRepository.getFeatureFlags).thenReturn(Future.successful(FeatureFlags(Seq.empty)))
+    when(adminRepository.getFeatureFlags).thenReturn(Future.successful(Some(Seq.empty)))
     when(adminRepository.setFeatureFlags(any())).thenReturn(Future.successful(false))
 
     whenReady(OUT.set(flagName, enabled = true))(_ mustBe false)
@@ -87,14 +87,14 @@ class FeatureFlagServiceSpec extends BaseSpec with ScalaFutures {
     val adminRepository = mock[AdminRepository]
     val OUT = new FeatureFlagService(adminRepository, new FakeCache())
 
-    when(adminRepository.getFeatureFlags).thenReturn(Future.successful(FeatureFlags(Seq.empty)))
+    when(adminRepository.getFeatureFlags).thenReturn(Future.successful(Some(Seq.empty)))
 
     OUT.getAll.futureValue mustBe Seq(Enabled(OnlinePaymentIntegration))
   }
 
   "When a flag doesn't exist in the repo the default is returned" in {
     val adminRepository = mock[AdminRepository]
-    when(adminRepository.getFeatureFlags).thenReturn(Future.successful(FeatureFlags(Seq.empty)))
+    when(adminRepository.getFeatureFlags).thenReturn(Future.successful(Some(Seq.empty)))
     val OUT = new FeatureFlagService(adminRepository, new FakeCache())
     OUT.get(OnlinePaymentIntegration).futureValue mustBe Enabled(OnlinePaymentIntegration)
   }
@@ -102,7 +102,7 @@ class FeatureFlagServiceSpec extends BaseSpec with ScalaFutures {
   "When a flag exists in the repo that overrides the default" in {
     val adminRepository = mock[AdminRepository]
     when(adminRepository.getFeatureFlags)
-      .thenReturn(Future.successful(FeatureFlags(Seq(Disabled(OnlinePaymentIntegration)))))
+      .thenReturn(Future.successful(Some(Seq(Disabled(OnlinePaymentIntegration)))))
     val OUT = new FeatureFlagService(adminRepository, new FakeCache())
     OUT.get(OnlinePaymentIntegration).futureValue mustBe Disabled(OnlinePaymentIntegration)
   }

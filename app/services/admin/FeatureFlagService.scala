@@ -50,7 +50,12 @@ class FeatureFlagService @Inject() (
     cache
       .getOrElseUpdate[Seq[FeatureFlag]]("feature-flags", cacheValidFor) {
         adminRepository.getFeatureFlags
-          .map(ff => addDefaults(ff.flags))
+          .map {
+            case Some(ff) =>
+              addDefaults(ff)
+            case None =>
+              addDefaults(Seq.empty[FeatureFlag])
+          }
       }
 
   def set(flagName: FeatureFlagName, enabled: Boolean): Future[Boolean] =

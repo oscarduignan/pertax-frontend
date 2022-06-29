@@ -51,12 +51,12 @@ class AdminRepository @Inject() (
       )
     ) {
 
-  def getFeatureFlags: Future[FeatureFlags] =
+  def getFeatureFlags: Future[Option[Seq[FeatureFlag]]] =
     collection
       .find()
       .projection(excludeId())
-      .toSingle()
-      .toFuture()
+      .map(_.flags)
+      .headOption()
 
   def setFeatureFlags(featureFlags: Seq[FeatureFlag]): Future[Boolean] =
     collection
