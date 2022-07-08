@@ -17,7 +17,7 @@
 package controllers
 
 import com.google.inject.Inject
-import config.ConfigDecorator
+import config.{ConfigDecorator, NewsAndTilesConfig}
 import controllers.auth.requests.UserRequest
 import controllers.auth.{AuthJourney, WithBreadcrumbAction}
 import controllers.controllershelpers.PaperlessInterruptHelper
@@ -26,16 +26,18 @@ import models._
 import play.api.Logging
 import play.api.mvc._
 import play.twirl.api.Html
-import services.PreferencesFrontendService
 import services.partials.{FormPartialService, SaPartialService}
+import services.{PreferencesFrontendService, SeissService}
 import uk.gov.hmrc.play.partials.HtmlPartial
 import uk.gov.hmrc.renderer.TemplateRenderer
-import util.DateTimeTools.previousAndCurrentTaxYearFromGivenYear
+import util.DateTimeTools._
+import util.{EnrolmentsHelper, FormPartialUpgrade}
 import views.html.SelfAssessmentSummaryView
-import views.html.interstitial.{ViewChildBenefitsSummaryInterstitialView, ViewNationalInsuranceInterstitialHomeView, ViewNewsAndUpdatesView}
+import views.html.interstitial.{ViewBreathingSpaceView, ViewChildBenefitsSummaryInterstitialView, ViewNationalInsuranceInterstitialHomeView, ViewNewsAndUpdatesView, ViewSaAndItsaMergePageView}
 import views.html.selfassessment.Sa302InterruptView
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.language.postfixOps
 
 class InterstitialController @Inject() (
   val formPartialService: FormPartialService,
@@ -49,17 +51,18 @@ class InterstitialController @Inject() (
   viewChildBenefitsSummaryInterstitialView: ViewChildBenefitsSummaryInterstitialView,
   selfAssessmentSummaryView: SelfAssessmentSummaryView,
   sa302InterruptView: Sa302InterruptView,
-  viewNewsAndUpdatesView: ViewNewsAndUpdatesView
+  viewNewsAndUpdatesView: ViewNewsAndUpdatesView,
+  viewSaAndItsaMergePageView: ViewSaAndItsaMergePageView,
+  viewBreathingSpaceView: ViewBreathingSpaceView,
+  enrolmentsHelper: EnrolmentsHelper,
+  seissService: SeissService,
+  newsAndTilesConfig: NewsAndTilesConfig
 )(implicit configDecorator: ConfigDecorator, val templateRenderer: TemplateRenderer, ec: ExecutionContext)
     extends PertaxBaseController(cc) with PaperlessInterruptHelper with Logging {
 
   val saBreadcrumb: Breadcrumb =
-    "label.self_assessment" -> routes.InterstitialController.displaySelfAssessment().url ::
+    "label.self_assessment" -> routes.InterstitialController.displaySelfAssessment.url ::
       baseBreadcrumb
-
-  private def currentUrl(implicit request: Request[AnyContent]) =
-    configDecorator.pertaxFrontendHost + request.path
-
   private val authenticate: ActionBuilder[UserRequest, AnyContent] =
     authJourney.authWithPersonalDetails andThen withBreadcrumbAction
       .addBreadcrumb(baseBreadcrumb)
@@ -68,18 +71,24 @@ class InterstitialController @Inject() (
       .addBreadcrumb(saBreadcrumb)
 
   def displayNationalInsurance: Action[AnyContent] = authenticate.async { implicit request =>
-    formPartialService.getNationalInsurancePartial.flatMap { p =>
-      Future.successful(
-        Ok(
-          viewNationalInsuranceInterstitialHomeView(
-            formPartial = p successfulContentOrElse Html(""),
-            redirectUrl = currentUrl,
-            request.nino
-          )
+    formPartialService.getNationalInsurancePartial.map { p =>
+      Ok(
+        viewNationalInsuranceInterstitialHomeView(
+          formPartial = if (configDecorator.partialUpgradeEnabled) {
+            //TODO: FormPartialUpgrade to be deleted. See DDCNL-6008
+            FormPartialUpgrade.upgrade(p successfulContentOrEmpty)
+          } else {
+            p successfulContentOrEmpty
+          },
+          redirectUrl = currentUrl,
+          request.nino
         )
       )
     }
   }
+
+  private def currentUrl(implicit request: Request[AnyContent]) =
+    configDecorator.pertaxFrontendHost + request.path
 
   def displayChildBenefits: Action[AnyContent] = authenticate { implicit request =>
     Ok(
@@ -88,6 +97,29 @@ class InterstitialController @Inject() (
         taxCreditsEnabled = configDecorator.taxCreditsEnabled
       )
     )
+  }
+
+  def displaySaAndItsaMergePage: Action[AnyContent] = authenticate.async { implicit request =>
+    if (
+      configDecorator.saItsaTileEnabled && request.trustedHelper.isEmpty &&
+      (enrolmentsHelper.itsaEnrolmentStatus(request.enrolments).isDefined || request.isSa)
+    ) {
+      for {
+        hasSeissClaims <- seissService.hasClaims(request.saUserType)
+      } yield Ok(
+        viewSaAndItsaMergePageView(
+          redirectUrl = currentUrl(request),
+          nextDeadlineTaxYear = (current.currentYear + 1).toString,
+          enrolmentsHelper.itsaEnrolmentStatus(request.enrolments).isDefined,
+          request.isSa,
+          hasSeissClaims,
+          taxYear = previousAndCurrentTaxYear,
+          request.saUserType
+        )
+      )
+    } else {
+      errorRenderer.futureError(UNAUTHORIZED)
+    }
   }
 
   def displaySelfAssessment: Action[AnyContent] = authenticate.async { implicit request =>
@@ -122,11 +154,22 @@ class InterstitialController @Inject() (
     }
   }
 
-  def displayNewsAndUpdates: Action[AnyContent] = authenticate { implicit request =>
-    Ok(
-      viewNewsAndUpdatesView(
-        redirectUrl = currentUrl
-      )
-    )
+  def displayNewsAndUpdates(newsSectionId: String): Action[AnyContent] = authenticate { implicit request =>
+    if (configDecorator.isNewsAndUpdatesTileEnabled) {
+      val models = newsAndTilesConfig.getNewsAndContentModelList()
+      //service to get the dynamic content send the models and get the details from the dynamic list
+      Ok(viewNewsAndUpdatesView(redirectUrl = currentUrl, models, newsSectionId))
+    } else {
+      errorRenderer.error(UNAUTHORIZED)
+    }
   }
+
+  def displayBreathingSpaceDetails: Action[AnyContent] = authenticate { implicit request =>
+    if (configDecorator.isBreathingSpaceIndicatorEnabled) {
+      Ok(viewBreathingSpaceView(redirectUrl = currentUrl))
+    } else {
+      errorRenderer.error(UNAUTHORIZED)
+    }
+  }
+
 }

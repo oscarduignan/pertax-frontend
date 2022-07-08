@@ -29,6 +29,7 @@ import uk.gov.hmrc.play.language.LanguageUtils
 import uk.gov.hmrc.renderer.TemplateRenderer
 import views.html.interstitial.DisplayAddressInterstitialView
 import views.html.personaldetails.{CannotUpdateAddressView, EnterStartDateView}
+import util.DateHelper.JodaTimeConverters
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -61,7 +62,7 @@ class StartDateController @Inject() (
 
               Future.successful(Ok(enterStartDateView(postcodesMatch, typ)))
             } getOrElse {
-              Future.successful(Redirect(routes.PersonalDetailsController.onPageLoad()))
+              Future.successful(Redirect(routes.PersonalDetailsController.onPageLoad))
             }
           }
         }
@@ -81,7 +82,9 @@ class StartDateController @Inject() (
                 personDetails.address match {
                   case Some(Address(_, _, _, _, _, _, _, Some(currentStartDate), _, _, status)) =>
                     if (!currentStartDate.isBefore(proposedStartDate)) {
-                      BadRequest(cannotUpdateAddressView(typ, languageUtils.Dates.formatDate(proposedStartDate)))
+                      BadRequest(
+                        cannotUpdateAddressView(typ, languageUtils.Dates.formatDate(proposedStartDate.toJavaLocalDate))
+                      )
                     } else {
                       Redirect(routes.AddressSubmissionController.onPageLoad(typ))
                     }

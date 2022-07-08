@@ -16,7 +16,7 @@
 
 package controllers.address
 
-import controllers.auth.AuthJourney
+import controllers.auth.{AuthJourney, FakeAuthJourney}
 import controllers.auth.requests.UserRequest
 import controllers.controllershelpers.AddressJourneyCachingHelper
 import models.dto.AddressPageVisitedDto
@@ -33,7 +33,7 @@ import play.api.test.Helpers._
 import services.{LocalSessionCache, TaxCreditsService}
 import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.http.cache.client.CacheMap
-import util.Fixtures.buildPersonDetailsCorrespondenceAddress
+import util.Fixtures.{buildFakeAddress, buildFakeCorrespondenceAddress, buildFakePerson, buildPersonDetailsCorrespondenceAddress}
 import util.UserRequestFixture.buildUserRequest
 import util.{ActionBuilderFixture, BaseSpec}
 
@@ -44,32 +44,8 @@ class TaxCreditsChoiceControllerSpec extends BaseSpec {
   val mockTaxCreditsService: TaxCreditsService = mock[TaxCreditsService]
   val mockLocalSessionCache: LocalSessionCache = mock[LocalSessionCache]
 
-  object FakeAuthJourney extends AuthJourney {
-    val cc: ControllerComponents = stubControllerComponents()
-
-    override val authWithSelfAssessment: ActionBuilder[UserRequest, AnyContent] = null
-
-    override val minimumAuthWithSelfAssessment: ActionBuilder[UserRequest, AnyContent] = null
-
-    override val authWithPersonalDetails: ActionBuilder[UserRequest, AnyContent] = new ActionBuilderFixture {
-      override def invokeBlock[A](request: Request[A], block: UserRequest[A] => Future[Result]): Future[Result] =
-        block(
-          buildUserRequest(
-            request = currentRequest[A],
-            personDetails = personDetailsForRequest,
-            saUser = saUserType
-          )
-        )
-
-      override def parser: BodyParser[AnyContent] = cc.parsers.defaultBodyParser
-
-      override protected def executionContext: ExecutionContext = cc.executionContext
-    }
-  }
-
-  override implicit lazy val app: Application = localGuiceApplicationBuilder()
+  override implicit lazy val app: Application = localGuiceApplicationBuilder(saUserType, personDetailsForRequest)
     .overrides(
-      bind[AuthJourney].toInstance(FakeAuthJourney),
       bind[LocalSessionCache].toInstance(mockLocalSessionCache),
       bind[TaxCreditsService].toInstance(mockTaxCreditsService)
     )
@@ -113,9 +89,8 @@ class TaxCreditsChoiceControllerSpec extends BaseSpec {
     }
 
     "return SEE_OTHER and the correct redirect if the user has tax credits" in {
-      lazy val app: Application = localGuiceApplicationBuilder()
+      implicit lazy val app: Application = localGuiceApplicationBuilder(saUserType, personDetailsForRequest)
         .overrides(
-          bind[AuthJourney].toInstance(FakeAuthJourney),
           bind[LocalSessionCache].toInstance(mockLocalSessionCache),
           bind[TaxCreditsService].toInstance(mockTaxCreditsService)
         )
@@ -141,9 +116,8 @@ class TaxCreditsChoiceControllerSpec extends BaseSpec {
     }
 
     "return SEE_OTHER and the correct redirect if the user hasn't got tax credits" in {
-      lazy val app: Application = localGuiceApplicationBuilder()
+      implicit lazy val app: Application = localGuiceApplicationBuilder(saUserType, personDetailsForRequest)
         .overrides(
-          bind[AuthJourney].toInstance(FakeAuthJourney),
           bind[LocalSessionCache].toInstance(mockLocalSessionCache),
           bind[TaxCreditsService].toInstance(mockTaxCreditsService)
         )
@@ -169,9 +143,8 @@ class TaxCreditsChoiceControllerSpec extends BaseSpec {
     }
 
     "return INTERNAL_SERVER_ERROR and no redirect URL if the service returns None" in {
-      lazy val app: Application = localGuiceApplicationBuilder()
+      implicit lazy val app: Application = localGuiceApplicationBuilder(saUserType, personDetailsForRequest)
         .overrides(
-          bind[AuthJourney].toInstance(FakeAuthJourney),
           bind[LocalSessionCache].toInstance(mockLocalSessionCache),
           bind[TaxCreditsService].toInstance(mockTaxCreditsService)
         )
@@ -214,45 +187,17 @@ class TaxCreditsChoiceControllerSpec extends BaseSpec {
     "redirect to expected tax credits page when supplied with value = Yes (true)" in {
       val mockAddressJourneyCachingHelper = mock[AddressJourneyCachingHelper]
 
-      def currentRequest[A]: Request[A] =
-        FakeRequest("POST", "")
-          .withFormUrlEncodedBody("taxCreditsChoice" -> "true")
-          .asInstanceOf[Request[A]]
-
-      object FakeAuthJourney extends AuthJourney {
-        val cc: ControllerComponents = stubControllerComponents()
-
-        override val authWithSelfAssessment: ActionBuilder[UserRequest, AnyContent] = null
-
-        override val minimumAuthWithSelfAssessment: ActionBuilder[UserRequest, AnyContent] = null
-
-        override val authWithPersonalDetails: ActionBuilder[UserRequest, AnyContent] = new ActionBuilderFixture {
-          override def invokeBlock[A](request: Request[A], block: UserRequest[A] => Future[Result]): Future[Result] =
-            block(
-              buildUserRequest(
-                request = currentRequest[A],
-                personDetails = personDetailsForRequest,
-                saUser = saUserType
-              )
-            )
-
-          override def parser: BodyParser[AnyContent] = cc.parsers.defaultBodyParser
-
-          override protected def executionContext: ExecutionContext = cc.executionContext
-        }
-      }
-
-      lazy val app: Application = localGuiceApplicationBuilder()
-        .overrides(
-          bind[AuthJourney].toInstance(FakeAuthJourney),
-          bind[LocalSessionCache].toInstance(mockLocalSessionCache),
-          bind[TaxCreditsService].toInstance(mockTaxCreditsService),
-          bind[AddressJourneyCachingHelper].toInstance(mockAddressJourneyCachingHelper)
-        )
-        .configure(
-          "feature.address-change-tax-credits-question.enabled" -> true
-        )
-        .build()
+      implicit lazy val app: Application =
+        localGuiceApplicationBuilder(NonFilerSelfAssessmentUser, personDetailsForRequest)
+          .overrides(
+            bind[LocalSessionCache].toInstance(mockLocalSessionCache),
+            bind[TaxCreditsService].toInstance(mockTaxCreditsService),
+            bind[AddressJourneyCachingHelper].toInstance(mockAddressJourneyCachingHelper)
+          )
+          .configure(
+            "feature.address-change-tax-credits-question.enabled" -> true
+          )
+          .build()
 
       val controller = app.injector.instanceOf[TaxCreditsChoiceController]
 
@@ -269,7 +214,10 @@ class TaxCreditsChoiceControllerSpec extends BaseSpec {
       }
 
       val result =
-        controller.onSubmit()(FakeRequest())
+        controller.onSubmit(
+          FakeRequest("POST", "")
+            .withFormUrlEncodedBody("taxCreditsChoice" -> "true")
+        )
 
       status(result) mustBe SEE_OTHER
       redirectLocation(result) mustBe Some("http://localhost:9362/tax-credits-service/personal/change-address")
@@ -278,45 +226,17 @@ class TaxCreditsChoiceControllerSpec extends BaseSpec {
     "redirect to InternationalAddressChoice page when supplied with value = No (false)" in {
       val mockAddressJourneyCachingHelper = mock[AddressJourneyCachingHelper]
 
-      def currentRequest[A]: Request[A] =
-        FakeRequest("POST", "")
-          .withFormUrlEncodedBody("taxCreditsChoice" -> "false")
-          .asInstanceOf[Request[A]]
-
-      object FakeAuthJourney extends AuthJourney {
-        val cc: ControllerComponents = stubControllerComponents()
-
-        override val authWithSelfAssessment: ActionBuilder[UserRequest, AnyContent] = null
-
-        override val minimumAuthWithSelfAssessment: ActionBuilder[UserRequest, AnyContent] = null
-
-        override val authWithPersonalDetails: ActionBuilder[UserRequest, AnyContent] = new ActionBuilderFixture {
-          override def invokeBlock[A](request: Request[A], block: UserRequest[A] => Future[Result]): Future[Result] =
-            block(
-              buildUserRequest(
-                request = currentRequest[A],
-                personDetails = personDetailsForRequest,
-                saUser = saUserType
-              )
-            )
-
-          override def parser: BodyParser[AnyContent] = cc.parsers.defaultBodyParser
-
-          override protected def executionContext: ExecutionContext = cc.executionContext
-        }
-      }
-
-      lazy val app: Application = localGuiceApplicationBuilder()
-        .overrides(
-          bind[AuthJourney].toInstance(FakeAuthJourney),
-          bind[LocalSessionCache].toInstance(mockLocalSessionCache),
-          bind[TaxCreditsService].toInstance(mockTaxCreditsService),
-          bind[AddressJourneyCachingHelper].toInstance(mockAddressJourneyCachingHelper)
-        )
-        .configure(
-          "feature.address-change-tax-credits-question.enabled" -> true
-        )
-        .build()
+      implicit lazy val app: Application =
+        localGuiceApplicationBuilder(NonFilerSelfAssessmentUser, personDetailsForRequest)
+          .overrides(
+            bind[LocalSessionCache].toInstance(mockLocalSessionCache),
+            bind[TaxCreditsService].toInstance(mockTaxCreditsService),
+            bind[AddressJourneyCachingHelper].toInstance(mockAddressJourneyCachingHelper)
+          )
+          .configure(
+            "feature.address-change-tax-credits-question.enabled" -> true
+          )
+          .build()
 
       val controller = app.injector.instanceOf[TaxCreditsChoiceController]
 
@@ -332,7 +252,10 @@ class TaxCreditsChoiceControllerSpec extends BaseSpec {
         Future.successful(true)
       }
 
-      val result = controller.onSubmit(FakeRequest())
+      val result = controller.onSubmit(
+        FakeRequest("POST", "")
+          .withFormUrlEncodedBody("taxCreditsChoice" -> "false")
+      )
 
       status(result) mustBe SEE_OTHER
       redirectLocation(result) mustBe Some("/personal-account/your-address/residential/do-you-live-in-the-uk")

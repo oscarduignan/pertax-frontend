@@ -1,5 +1,5 @@
 @*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,26 +17,54 @@
 @import config.ConfigDecorator
 @import controllers.auth.requests.UserRequest
 @import uk.gov.hmrc.renderer.TemplateRenderer
+@import views.html.components.{H1, H2, Link, P}
 
-@import uk.gov.hmrc.play.bootstrap.binders.SafeRedirectUrl
-@import views.html.interstitial.InterstitialWrapperView
 @import scala.concurrent.ExecutionContext
 
-@this(mainView: MainView)
+@this(
+        mainView: newMain,
+        h1: H1,
+        h2: H2,
+        p: P,
+        link: Link
+)
 
-@(redirectUrl: String)(implicit request: UserRequest[_], configDecorator: ConfigDecorator, templateRenderer: TemplateRenderer, messages: play.api.i18n.Messages, ec: ExecutionContext)
-@mainView(messages("label.news_and_updates"), Some(messages("label.your_personal_tax_account"))){
+@(redirectUrl: String, newsAndContentModelList: List[NewsAndContentModel], selectedNewsSectionId: String)(implicit request: UserRequest[_], configDecorator: ConfigDecorator, templateRenderer: TemplateRenderer, messages: play.api.i18n.Messages, ec: ExecutionContext)
+@ptaScript = {
+    <script>
+            document.onreadystatechange = function () {
+                document.getElementById('@selectedNewsSectionId').focus();
+            }
+    </script>
+}
+@mainView(
+    pageTitle = messages("label.news_and_updates"),
+    showBackLink = true,
+    scripts = Some(ptaScript)
+) {
+    @h1("label.news_and_updates", elmId = Some("newsHeading"))
+    @if(newsAndContentModelList.size > 1) {
+        <div class="govuk-!-margin-bottom-7">
+            <ul class="govuk-list govuk-list--bullet govuk-list--spaced">
+            @for(newsAndContentModel <- newsAndContentModelList) {
+                <li>
+                    <a class="govuk-link govuk-link--no-visited-state" href="./@newsAndContentModel.newsSectionName">@newsAndContentModel.shortDescription</a>
+                </li>
+            }
+            </ul>
+        </div>
+    }
 
-<div class="grid-row">
-<div  class="column-two-thirds">
-    @back_link()
-    <h1 class="heading-xlarge no-margin-bottom">@messages("label.news_and_updates")</h1>
-
+    @for(newsAndContentModel <- newsAndContentModelList) {
         <section class="app-markdown">
-            <h2 id="verify">@messages("label.stop_using_Verify")</h2>
-        <p>@messages("label.verify_stop_from_1_April_2022")</p>
-            <p> <a class="trackLink"  href=@messages("createGGSigningIn.link.url") target="_blank">@messages("label.create_government_gateway_sign_in")</a></p>
+            <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+            @if(selectedNewsSectionId.equals(newsAndContentModel.newsSectionName)) {
+                <div id="@newsAndContentModel.newsSectionName" tabindex="0"></div>
+            }
+            <h2 class="govuk-heading-m">@newsAndContentModel.shortDescription</h2>
+            <div>
+            @Html(newsAndContentModel.content)
+            </div>
         </section>
-</div>
-</div>
+    }
 }

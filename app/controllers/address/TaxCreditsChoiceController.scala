@@ -19,7 +19,7 @@ package controllers.address
 import com.google.inject.Inject
 import config.ConfigDecorator
 import controllers.auth.{AuthJourney, WithActiveTabAction}
-import controllers.bindable.{AddrType, ResidentialAddrType}
+import controllers.bindable.AddrType
 import controllers.controllershelpers.AddressJourneyCachingHelper
 import models.TaxCreditsChoiceId
 import models.dto.TaxCreditsChoiceDto
@@ -33,8 +33,6 @@ import views.html.interstitial.DisplayAddressInterstitialView
 import views.html.personaldetails.TaxCreditsChoiceView
 
 import scala.concurrent.{ExecutionContext, Future}
-import java.time.Instant
-import java.time.LocalDate
 
 class TaxCreditsChoiceController @Inject() (
   authJourney: AuthJourney,
@@ -64,7 +62,7 @@ class TaxCreditsChoiceController @Inject() (
                 Redirect(configDecorator.tcsChangeAddressUrl)
               case Some(false) =>
                 cachingHelper.addToCache(TaxCreditsChoiceId, TaxCreditsChoiceDto(false))
-                Redirect(routes.DoYouLiveInTheUKController.onPageLoad())
+                Redirect(routes.DoYouLiveInTheUKController.onPageLoad)
               case None =>
                 InternalServerError(internalServerErrorView())
             }
@@ -101,7 +99,7 @@ class TaxCreditsChoiceController @Inject() (
           )
         }
       } else {
-        Future.successful(Redirect(routes.PersonalDetailsController.onPageLoad()))
+        Future.successful(Redirect(routes.PersonalDetailsController.onPageLoad))
       }
     }
 }
