@@ -89,8 +89,8 @@ label.your_address_has_been_changed=Mae’ch cyfeiriad wedi’i newid
 label.enter_your_address_if_it_is_not_shown=Nodi’ch cyfeiriad os nad yw’n cael ei ddangos
 label.enter_your_address_yourself=Nodi’ch cyfeiriad eich hun
 label.sign_in=Mewngofnodi
-label.youve_been_signed_out=Mae’r system wedi’ch allgofnodi
-label.timeout_message=Nid ydych wedi gwneud unrhyw beth am {0} munud, felly rydym wedi’ch allgofnodi er mwyn cadw’ch cyfrif yn ddiogel.
+label.youve_been_signed_out=Er eich diogelwch, gwnaethom eich allgofnodi
+label.timeout_message=Ni wnaethom gadw’ch atebion.
 label.please_sign_in_again=Mewngofnodwch eto.
 label.timeout.dialog.title=Rydych ar fin cael eich allgofnodi
 label.timeout.dialog.message=Am resymau diogelwch, byddwch yn cael eich allgofnodi ymhen
@@ -116,7 +116,7 @@ label.telephone_0300_200_3300=Ffôn: 0300 200 1900
 label.textphone_0300_200_3319=Ffôn testun: 0300 200 3319
 label.contact_number=0300 200 1900
 label.outside_uk_441355359022=Y tu allan i’r DU: +44 135 535 9022
-label.opens_in_a_new_window=(yn agor mewn tab newydd)
+label.opens_in_a_new_window=(yn agor tab newydd)
 label.yes=Iawn
 label.no=Na
 label.list_of_messages=Rhestr o negeseuon
@@ -368,6 +368,7 @@ error.date_in_future=Mae’n rhaid i’r dyddiad y gwnaethoch ddechrau byw fan h
 head.error.country_required=Nodwch wlad
 error.country_required=Nodwch wlad
 error.message.error = Gwall:
+error.you_must_select_an_answer=Dewis ateb
 
 #
 # Messages in lower case
@@ -474,6 +475,20 @@ label.making_tax_digital=Troi Treth yn Ddigidol
 label.from_date_mtd_service_for_itsa_will_replace_sa_tax_return=O 6 Ebrill 2024 ymlaen bydd y gwasanaeth Troi Treth yn Ddigidol ar gyfer Hunanasesiad Treth Incwm yn disodli’r Ffurflen Dreth Hunanasesiad.
 label.some_businesses_agents_using_mtd_for_itsa=Mae rhai busnesau ac asiantau eisoes yn defnyddio’r gwasanaeth Troi Treth yn Ddigidol ar gyfer Hunanasesiad Treth Incwm.
 label.find_out_about_making_tax_digital_for_income_tax_self_assessment=Cael gwybod am y cynllun Troi Treth yn Ddigidol ar gyfer Hunanasesiad Treth Incwm (yn agor tab newydd)
+
+#
+# Breathing Space
+#
+label.breathing_space=AMSER I GAEL EICH GWYNT ATOCH
+label.find_out_what_it_means_to_be_in_breathing_space=Darganfyddwch beth mae’n ei olygu i fod mewn Amser i gael eich gwynt atoch.
+label.you_are_in_breathing_space=Rydych mewn cyfnod ‘amser i gael eich gwynt atoch’ (Breathing Space)
+label.the_debt_respite_scheme_gives_people_in_debt_the_right_to_legal_protections_from_their_creditors=Mae’r Cynllun Seibiant rhag Dyled (amser i gael eich gwynt atoch) yn rhoi’r hawl i bobl sydd mewn dyled gael eu diogelu’n gyfreithiol rhag eu credydwyr.
+label.whilst_you_are_in_breathing_space=Tra eich bod yn y cyfnod hwn, ni fyddwn yn:
+label.add_interest_or_charges_to_your_debt=codi llog na chostau ar eich dyled
+label.contact_you_to_ask_for_payment=cysylltu â chi i ofyn am daliad
+label.take_enforcement_action_against_you=cymryd camau gorfodi yn eich erbyn
+label.you_can_still_make_payments_towards_your_debt_during_breathing_space=Gallwch barhau i wneud taliadau tuag at eich dyled yn ystod y cyfnod amser i gael eich gwynt atoch. Siaradwch â’ch ymgynghorydd arian i gael rhagor o wybodaeth am y cynllun.
+
 
 #
 # Benefits
