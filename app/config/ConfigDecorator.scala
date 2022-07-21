@@ -19,7 +19,7 @@ package config
 import com.google.inject.{Inject, Singleton}
 import controllers.routes
 import org.joda.time.LocalDate
-import play.api.{Configuration, Play}
+import play.api.Configuration
 import play.api.i18n.{Lang, Langs}
 import uk.gov.hmrc.play.binders.Origin
 import uk.gov.hmrc.play.bootstrap.binders.SafeRedirectUrl
@@ -40,6 +40,10 @@ class ConfigDecorator @Inject() (
   val authProviderKey = "AuthProvider"
   val authProviderGG = "GovernmentGateway"
   val authProviderVerify = "Verify"
+
+  // internal auth
+  val internalAuthResourceType: String =
+    runModeConfiguration.get[String]("microservice.services.internal-auth.resource-type")
 
   def currentLocalDate: LocalDate = LocalDate.now()
 
