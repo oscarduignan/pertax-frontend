@@ -94,7 +94,4 @@ GET         /admin/metrics                                                      
 ->          /                                                                          health.Routes
 ->          /personal-account/hmrc-frontend                                            hmrcfrontend.Routes
 ->          /personal-account/pta-frontend                                             ptafrontend.Routes
-
-+nocsrf
-PUT         /admin/featureFlags/:flagName                                              controllers.admin.FeatureFlagController.put(flagName: FeatureFlagName)
-GET         /admin/featureFlags                                                        controllers.admin.FeatureFlagController.get
+->          /admin                                                                     admin.Routes

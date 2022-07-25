@@ -1,0 +1,5 @@
+#admin routes
+
++nocsrf
+PUT        /featureFlags/:flagName        controllers.admin.FeatureFlagController.put(flagName: FeatureFlagName)
+GET        /featureFlags                  controllers.admin.FeatureFlagController.get
