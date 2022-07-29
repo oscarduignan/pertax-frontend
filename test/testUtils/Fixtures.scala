@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package util
+package testUtils
 
 import akka.Done
 import config.ConfigDecorator
@@ -45,6 +45,7 @@ import uk.gov.hmrc.domain.{Generator, Nino}
 import uk.gov.hmrc.http.{HeaderCarrier, SessionKeys}
 import uk.gov.hmrc.play.partials.FormPartialRetriever
 import uk.gov.hmrc.time.DateTimeUtils._
+import testUtils.UserRequestFixture.buildUserRequest
 
 import java.util.UUID
 import scala.concurrent.duration.Duration
