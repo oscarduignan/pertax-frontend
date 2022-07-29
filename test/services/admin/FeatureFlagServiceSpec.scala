@@ -28,7 +28,7 @@ import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.concurrent.ScalaFutures
 import play.api.cache.AsyncCacheApi
 import repositories.AdminRepository
-import util.BaseSpec
+import testUtils.BaseSpec
 
 import scala.concurrent.Future
 import scala.concurrent.duration.Duration
