@@ -37,6 +37,7 @@ import uk.gov.hmrc.internalauth.client.Predicate.Permission
 import uk.gov.hmrc.internalauth.client.test.{BackendAuthComponentsStub, StubBehaviour}
 import uk.gov.hmrc.internalauth.client._
 import testUtils.BaseSpec
+import testUtils.Fixtures.mockCacheApi
 
 import scala.concurrent.Future
 

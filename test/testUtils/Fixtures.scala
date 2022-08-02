@@ -41,6 +41,7 @@ import play.api.mvc._
 import play.api.test.{FakeRequest, Helpers}
 import play.twirl.api.Html
 import repositories.EditAddressLockRepository
+import testUtils.Fixtures.mockCacheApi
 import uk.gov.hmrc.domain.{Generator, Nino}
 import uk.gov.hmrc.http.{HeaderCarrier, SessionKeys}
 import uk.gov.hmrc.play.partials.FormPartialRetriever
@@ -328,6 +329,20 @@ object Fixtures extends PafFixtures with TaiFixtures with CitizenDetailsFixtures
       Some(Fixtures.fakeNino)
     )
 
+  // A cache that doesn't cache
+  val mockCacheApi: AsyncCacheApi = new AsyncCacheApi {
+    override def set(key: String, value: Any, expiration: Duration): Future[Done] = ???
+
+    override def remove(key: String): Future[Done] = ???
+
+    override def getOrElseUpdate[A](key: String, expiration: Duration)(orElse: => Future[A])(implicit
+      evidence$1: ClassTag[A]
+    ): Future[A] = orElse
+
+    override def get[T](key: String)(implicit evidence$2: ClassTag[T]): Future[Option[T]] = ???
+
+    override def removeAll(): Future[Done] = ???
+  }
 }
 
 trait BaseSpec
@@ -351,21 +366,6 @@ trait BaseSpec
       "metrics.enabled"               -> false,
       "auditing.enabled"              -> false
     )
-
-  // A cache that doesn't cache
-  val mockCacheApi: AsyncCacheApi = new AsyncCacheApi {
-    override def set(key: String, value: Any, expiration: Duration): Future[Done] = ???
-
-    override def remove(key: String): Future[Done] = ???
-
-    override def getOrElseUpdate[A](key: String, expiration: Duration)(orElse: => Future[A])(implicit
-      evidence$1: ClassTag[A]
-    ): Future[A] = orElse
-
-    override def get[T](key: String)(implicit evidence$2: ClassTag[T]): Future[Option[T]] = ???
-
-    override def removeAll(): Future[Done] = ???
-  }
 
   protected def localGuiceApplicationBuilder(
     saUser: SelfAssessmentUserType = NonFilerSelfAssessmentUser,

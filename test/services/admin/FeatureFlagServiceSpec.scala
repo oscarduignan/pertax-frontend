@@ -16,7 +16,6 @@
 
 package services.admin
 
-import akka.Done
 import models.admin.FeatureFlag.{Disabled, Enabled}
 import models.admin.FeatureFlagName.OnlinePaymentIntegration
 import models.admin.{FeatureFlag, FeatureFlagName}
@@ -26,13 +25,11 @@ import org.mockito.Mockito.{times, verify, when}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.concurrent.ScalaFutures
-import play.api.cache.AsyncCacheApi
 import repositories.AdminRepository
 import testUtils.BaseSpec
+import testUtils.Fixtures.mockCacheApi
 
 import scala.concurrent.Future
-import scala.concurrent.duration.Duration
-import scala.reflect.ClassTag
 
 class FeatureFlagServiceSpec extends BaseSpec with ScalaFutures {
 
@@ -40,27 +37,12 @@ class FeatureFlagServiceSpec extends BaseSpec with ScalaFutures {
     Gen.oneOf(FeatureFlagName.flags)
   }
 
-  // A cache that doesn't cache
-  class FakeCache extends AsyncCacheApi {
-    override def set(key: String, value: Any, expiration: Duration): Future[Done] = ???
-
-    override def remove(key: String): Future[Done] = ???
-
-    override def getOrElseUpdate[A](key: String, expiration: Duration)(orElse: => Future[A])(implicit
-      evidence$1: ClassTag[A]
-    ): Future[A] = orElse
-
-    override def get[T](key: String)(implicit evidence$2: ClassTag[T]): Future[Option[T]] = ???
-
-    override def removeAll(): Future[Done] = ???
-  }
-
   "When set works in the repo returns true" in {
     val adminRepository = mock[AdminRepository]
     when(adminRepository.getFeatureFlags).thenReturn(Future.successful(Some(Seq.empty)))
     when(adminRepository.setFeatureFlags(any())).thenReturn(Future.successful(true))
 
-    val OUT = new FeatureFlagService(adminRepository, new FakeCache())
+    val OUT = new FeatureFlagService(adminRepository, mockCacheApi)
     val flagName = arbitrary[FeatureFlagName].sample.getOrElse(FeatureFlagName.OnlinePaymentIntegration)
 
     whenReady(OUT.set(flagName, enabled = true)) { result =>
@@ -75,7 +57,7 @@ class FeatureFlagServiceSpec extends BaseSpec with ScalaFutures {
     val adminRepository = mock[AdminRepository]
 
     val flagName = arbitrary[FeatureFlagName].sample.getOrElse(FeatureFlagName.OnlinePaymentIntegration)
-    val OUT = new FeatureFlagService(adminRepository, new FakeCache())
+    val OUT = new FeatureFlagService(adminRepository, mockCacheApi)
 
     when(adminRepository.getFeatureFlags).thenReturn(Future.successful(Some(Seq.empty)))
     when(adminRepository.setFeatureFlags(any())).thenReturn(Future.successful(false))
@@ -85,7 +67,7 @@ class FeatureFlagServiceSpec extends BaseSpec with ScalaFutures {
 
   "When getAll is called returns all of the flags from the repo" in {
     val adminRepository = mock[AdminRepository]
-    val OUT = new FeatureFlagService(adminRepository, new FakeCache())
+    val OUT = new FeatureFlagService(adminRepository, mockCacheApi)
 
     when(adminRepository.getFeatureFlags).thenReturn(Future.successful(Some(Seq.empty)))
 
@@ -95,7 +77,7 @@ class FeatureFlagServiceSpec extends BaseSpec with ScalaFutures {
   "When a flag doesn't exist in the repo the default is returned" in {
     val adminRepository = mock[AdminRepository]
     when(adminRepository.getFeatureFlags).thenReturn(Future.successful(Some(Seq.empty)))
-    val OUT = new FeatureFlagService(adminRepository, new FakeCache())
+    val OUT = new FeatureFlagService(adminRepository, mockCacheApi)
     OUT.get(OnlinePaymentIntegration).futureValue mustBe Enabled(OnlinePaymentIntegration)
   }
 
@@ -103,7 +85,7 @@ class FeatureFlagServiceSpec extends BaseSpec with ScalaFutures {
     val adminRepository = mock[AdminRepository]
     when(adminRepository.getFeatureFlags)
       .thenReturn(Future.successful(Some(Seq(Disabled(OnlinePaymentIntegration)))))
-    val OUT = new FeatureFlagService(adminRepository, new FakeCache())
+    val OUT = new FeatureFlagService(adminRepository, mockCacheApi)
     OUT.get(OnlinePaymentIntegration).futureValue mustBe Disabled(OnlinePaymentIntegration)
   }
 }
