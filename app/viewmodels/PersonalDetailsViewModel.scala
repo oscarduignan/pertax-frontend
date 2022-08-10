@@ -23,10 +23,13 @@ import controllers.controllershelpers.CountryHelper
 import models._
 import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.domain.Nino
+import uk.gov.hmrc.http.HeaderCarrier
 import util.RichOption.CondOpt
 import util.TemplateFunctions
 import views.html.personaldetails.partials.{AddressView, CorrespondenceAddressView}
 import views.html.tags.formattedNino
+
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class PersonalDetailsViewModel @Inject() (
@@ -38,7 +41,8 @@ class PersonalDetailsViewModel @Inject() (
 
   private def getMainAddress(
     personDetails: PersonDetails,
-    optionalEditAddress: List[EditedAddress]
+    optionalEditAddress: List[EditedAddress],
+    taxCreditsAvailable: Boolean
   )(implicit
     messages: play.api.i18n.Messages
   ) = {
@@ -59,7 +63,7 @@ class PersonalDetailsViewModel @Inject() (
       if (isMainAddressChangeLocked)
         createAddressRow("label.you_can_only_change_this_address_once_a_day_please_try_again_tomorrow", None)
       else
-        createAddressRow("label.change", Some(AddressRowModel.changeMainAddressUrl(configDecorator)))
+        createAddressRow("label.change", Some(AddressRowModel.changeMainAddressUrl))
     }
   }
 
@@ -77,14 +81,15 @@ class PersonalDetailsViewModel @Inject() (
     postalAddress match {
       case Some(address) => Some(address)
       case _ =>
-        personDetails.address.map { _ =>
+        personDetails.address.map { address =>
           PersonalDetailsTableRowModel(
             "postal_address",
             "label.postal_address",
-            correspondenceAddressView(None, countryHelper.excludedCountries),
+            correspondenceAddressView(Some(address), countryHelper.excludedCountries),
             "label.change",
             "label.your.postal_address",
-            Some(AddressRowModel.changePostalAddressUrl)
+            Some(AddressRowModel.changePostalAddressUrl),
+            isPostalAddressSame = true
           )
         }
     }
@@ -116,13 +121,13 @@ class PersonalDetailsViewModel @Inject() (
       }
     }
 
-  def getAddressRow(addressModel: List[AddressJourneyTTLModel])(implicit
+  def getAddressRow(addressModel: List[AddressJourneyTTLModel], taxCreditsAvailable: Boolean = false)(implicit
     request: UserRequest[_],
     messages: play.api.i18n.Messages
   ): AddressRowModel = {
     val optionalEditAddress = addressModel.map(y => y.editedAddress)
     val mainAddressRow: Option[PersonalDetailsTableRowModel] = request.personDetails
-      .flatMap(getMainAddress(_, optionalEditAddress))
+      .flatMap(getMainAddress(_, optionalEditAddress, taxCreditsAvailable))
     val postalAddressRow: Option[PersonalDetailsTableRowModel] = request.personDetails
       .flatMap(getPostalAddress(_, optionalEditAddress))
 
@@ -143,7 +148,8 @@ class PersonalDetailsViewModel @Inject() (
           HtmlFormat.raw(TemplateFunctions.upperCaseToTitleCase(name)),
           "label.change",
           "label.your_name",
-          Some(configDecorator.changeNameLinkUrl)
+          Some(configDecorator.changeNameLinkUrl),
+          displayChangelink = request.trustedHelper.isEmpty
         )
       )
 
@@ -180,6 +186,21 @@ class PersonalDetailsViewModel @Inject() (
       )
     )
 
+  def getManageTaxAgentsRow(implicit
+    request: UserRequest[_],
+    messages: play.api.i18n.Messages
+  ): Option[PersonalDetailsTableRowModel] =
+    Some(
+      PersonalDetailsTableRowModel(
+        "manage_tax_agents",
+        "label.manage_tax_agents",
+        HtmlFormat.raw(messages("label.add_view_change_tax_agents")),
+        "label.manage",
+        "label.your_tax_agents",
+        Some(configDecorator.manageTaxAgentsUrl)
+      )
+    )
+
   def getPaperlessSettingsRow(implicit
     request: UserRequest[_],
     messages: play.api.i18n.Messages
@@ -190,7 +211,8 @@ class PersonalDetailsViewModel @Inject() (
       HtmlFormat.raw(""),
       "label.change",
       "label.your_paperless_settings",
-      Some(controllers.routes.PaperlessPreferencesController.managePreferences.url)
+      Some(controllers.routes.PaperlessPreferencesController.managePreferences.url),
+      displayChangelink = request.trustedHelper.isEmpty
     ) onlyIf request.isGovernmentGateway
 
   def getSignInDetailsRow(implicit
@@ -204,7 +226,8 @@ class PersonalDetailsViewModel @Inject() (
         HtmlFormat.raw(messages("label.sign_in_details_content")),
         "label.change",
         "label.your_gg_details",
-        Some(profileUrl)
+        Some(profileUrl),
+        displayChangelink = request.trustedHelper.isEmpty
       ) onlyIf request.isGovernmentGateway
     }
 }

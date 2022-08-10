@@ -32,12 +32,11 @@ import play.api.mvc.{AnyContentAsEmpty, MessagesControllerComponents, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{contentAsString, redirectLocation, _}
 import services.SelfAssessmentService
+import testUtils.BaseSpec
 import uk.gov.hmrc.domain.{SaUtr, SaUtrGenerator}
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
-import uk.gov.hmrc.renderer.TemplateRenderer
 import uk.gov.hmrc.time.CurrentTaxYear
-import util.BaseSpec
-import util.Fixtures.buildFakeRequestWithAuth
+import testUtils.Fixtures.buildFakeRequestWithAuth
 import views.html.iv.failure.{CannotConfirmIdentityView, FailedIvContinueToActivateSaView}
 import views.html.selfassessment.RequestAccessToSelfAssessmentView
 
@@ -58,9 +57,7 @@ class SelfAssessmentControllerSpec extends BaseSpec with CurrentTaxYear {
   override implicit lazy val app: Application = localGuiceApplicationBuilder()
     .overrides(
       bind[AuditConnector].toInstance(mockAuditConnector),
-      bind[AuthAction].toInstance(mockAuthAction),
-      bind[SelfAssessmentStatusAction].toInstance(mockSelfAssessmentStatusAction),
-      bind[AuthJourney].toInstance(defaultFakeAuthJourney)
+      bind[SelfAssessmentStatusAction].toInstance(mockSelfAssessmentStatusAction)
     )
     .build()
 
@@ -82,7 +79,7 @@ class SelfAssessmentControllerSpec extends BaseSpec with CurrentTaxYear {
         injected[FailedIvContinueToActivateSaView],
         injected[CannotConfirmIdentityView],
         injected[RequestAccessToSelfAssessmentView]
-      )(config, templateRenderer, ec)
+      )(config, ec)
 
     when(mockAuditConnector.sendEvent(any())(any(), any())) thenReturn {
       Future.successful(AuditResult.Success)
@@ -139,7 +136,7 @@ class SelfAssessmentControllerSpec extends BaseSpec with CurrentTaxYear {
       status(result) mustBe OK
 
       doc
-        .getElementsByClass("heading-large")
+        .getElementsByClass("govuk-heading-l")
         .toString()
         .contains("Activate your Self Assessment registration") mustBe true
     }

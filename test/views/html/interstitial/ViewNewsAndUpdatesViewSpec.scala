@@ -17,17 +17,15 @@
 package views.html.interstitial
 
 import config.ConfigDecorator
-import org.jsoup.nodes.Document
-import org.scalatest.Assertion
+import models.NewsAndContentModel
 import play.api.i18n.Messages
 import play.api.test.FakeRequest
-import util.UserRequestFixture.buildUserRequest
+import testUtils.UserRequestFixture.buildUserRequest
 import views.html.ViewSpec
 
 class ViewNewsAndUpdatesViewSpec extends ViewSpec {
 
   lazy val viewNewsAndUpdatesView = injected[ViewNewsAndUpdatesView]
-
   lazy implicit val configDecorator: ConfigDecorator = injected[ConfigDecorator]
   implicit val userRequest = buildUserRequest(request = FakeRequest())
 
@@ -35,20 +33,27 @@ class ViewNewsAndUpdatesViewSpec extends ViewSpec {
 
     implicit val userRequest = buildUserRequest(request = FakeRequest())
 
+    val newsAndContentModel = new NewsAndContentModel(
+      "nicSection",
+      "1.25 percentage points uplift in National Insurance contributions (base64 encoded)",
+      "<p>base64 encoded content with html</p>",
+      false
+    )
+
     val doc =
       asDocument(
-        viewNewsAndUpdatesView(s"${configDecorator.pertaxFrontendHomeUrl}/personal-account/news").toString
+        viewNewsAndUpdatesView(
+          s"${configDecorator.pertaxFrontendHomeUrl}/personal-account/news",
+          List[NewsAndContentModel](newsAndContentModel),
+          "nicSection"
+        ).toString
       )
     "show content" in {
 
       doc.text() must include(Messages("label.news_and_updates"))
-      doc.text() must include(Messages("label.stop_using_Verify"))
-      doc.text() must include(Messages("label.verify_stop_from_1_April_2022"))
-      doc.text() must include(Messages("label.percentage_points_uplift_in_NIC"))
-      doc.text() must include(
-        Messages("label.national_insurance_contributions_will_increase_by_1.25_percentage_points")
-      )
-      doc.text() must include(Messages("label.the_increase_will_apply_to"))
+      doc.text() must include("1.25 percentage points uplift in National Insurance contributions (base64 encoded)")
+      doc.text() must include("base64 encoded content with html")
+
     }
 
   }

@@ -20,24 +20,14 @@ import com.google.inject.Inject
 import config.ConfigDecorator
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.binders.Origin
-import uk.gov.hmrc.renderer.TemplateRenderer
 import views.html.public.SessionTimeoutView
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class PublicController @Inject() (cc: MessagesControllerComponents, sessionTimeoutView: SessionTimeoutView)(implicit
   configDecorator: ConfigDecorator,
-  templateRenderer: TemplateRenderer,
   ec: ExecutionContext
 ) extends PertaxBaseController(cc) {
-
-  def verifyEntryPoint: Action[AnyContent] = Action.async { implicit request =>
-    Future.successful {
-      Redirect(routes.HomeController.index).withNewSession.addingToSession(
-        configDecorator.authProviderKey -> configDecorator.authProviderVerify
-      )
-    }
-  }
 
   def governmentGatewayEntryPoint: Action[AnyContent] = Action.async { implicit request =>
     Future.successful {

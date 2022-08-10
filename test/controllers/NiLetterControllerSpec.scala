@@ -18,7 +18,7 @@ package controllers
 
 import connectors.PdfGeneratorConnector
 import controllers.auth.requests.UserRequest
-import controllers.auth.{AuthJourney, WithActiveTabAction, WithBreadcrumbAction}
+import controllers.auth.{AuthJourney, WithBreadcrumbAction}
 import error.ErrorRenderer
 import org.jsoup.Jsoup
 import org.mockito.Mockito._
@@ -28,10 +28,10 @@ import play.api.inject.bind
 import play.api.mvc.{MessagesControllerComponents, Request, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import testUtils.{ActionBuilderFixture, BaseSpec, CitizenDetailsFixtures}
 import uk.gov.hmrc.auth.core.ConfidenceLevel
 import uk.gov.hmrc.auth.core.retrieve.Credentials
-import util.UserRequestFixture.buildUserRequest
-import util.{ActionBuilderFixture, BaseSpec, CitizenDetailsFixtures}
+import testUtils.UserRequestFixture.buildUserRequest
 import views.html.print._
 
 import scala.concurrent.Future
@@ -48,7 +48,6 @@ class NiLetterControllerSpec extends BaseSpec with MockitoSugar with CitizenDeta
     .overrides(
       bind[InterstitialController].toInstance(mockInterstitialController),
       bind[PdfGeneratorConnector].toInstance(mockPdfGeneratorConnector),
-      bind[AuthJourney].toInstance(mockAuthJourney),
       bind[HomeController].toInstance(mockHomeController),
       bind[RlsController].toInstance(mockRlsConfirmAddressController)
     )
@@ -64,11 +63,9 @@ class NiLetterControllerSpec extends BaseSpec with MockitoSugar with CitizenDeta
       injected[ErrorRenderer],
       injected[PrintNationalInsuranceNumberView],
       injected[NiLetterPDfWrapperView],
-      injected[NiLetterView],
-      injected[WithActiveTabAction]
+      injected[NiLetterView]
     )(
       config,
-      templateRenderer,
       ec
     )
 
@@ -92,8 +89,8 @@ class NiLetterControllerSpec extends BaseSpec with MockitoSugar with CitizenDeta
         override def invokeBlock[A](request: Request[A], block: UserRequest[A] => Future[Result]): Future[Result] =
           block(
             buildUserRequest(
-              credentials = Credentials("", "Verify"),
-              confidenceLevel = ConfidenceLevel.L500,
+              credentials = Credentials("", "GovernmentGateway"),
+              confidenceLevel = ConfidenceLevel.L200,
               request = request
             )
           )
@@ -103,7 +100,7 @@ class NiLetterControllerSpec extends BaseSpec with MockitoSugar with CitizenDeta
 
       status(r) mustBe OK
       val doc = Jsoup.parse(contentAsString(r))
-      doc.getElementById("page-title").text() mustBe "Your National Insurance letter"
+      doc.getElementsByClass("govuk-heading-xl").text() mustBe "Your National Insurance letter"
       doc
         .getElementById("keep-ni-number-safe")
         .text() mustBe "Keep this number in a safe place. Do not destroy this letter."

@@ -28,7 +28,7 @@ final case class AddressRowModel(
 ) {
   def extraPostalAddressLink()(implicit messages: Messages): Option[ExtraLinks] = {
     def showRemoveLink(address: PersonalDetailsTableRowModel) = {
-      val hasSameAddress = address.content.toString().contains(messages("label.same_as_main_address"))
+      val hasSameAddress = address.isPostalAddressSame
       val canRemoveAddress = address.linkUrl.isDefined
 
       !hasSameAddress && canRemoveAddress
@@ -44,12 +44,8 @@ final case class AddressRowModel(
 }
 
 object AddressRowModel {
-  def changeMainAddressUrl(configDecorator: ConfigDecorator): String =
-    if (configDecorator.taxCreditsEnabled) {
-      controllers.address.routes.TaxCreditsChoiceController.onPageLoad.url
-    } else {
-      controllers.address.routes.DoYouLiveInTheUKController.onPageLoad.url
-    }
+  def changeMainAddressUrl: String =
+    controllers.address.routes.TaxCreditsChoiceController.onPageLoad.url
 
   val closePostalAddressUrl = controllers.address.routes.ClosePostalAddressController.onPageLoad.url
   val changePostalAddressUrl = controllers.address.routes.PostalDoYouLiveInTheUKController.onPageLoad.url

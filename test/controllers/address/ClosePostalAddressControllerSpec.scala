@@ -31,9 +31,9 @@ import services._
 import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.http.cache.client.CacheMap
 import uk.gov.hmrc.play.audit.model.DataEvent
-import util.Fixtures
-import util.Fixtures.{buildFakeAddress, buildPersonDetailsCorrespondenceAddress}
-import util.UserRequestFixture.buildUserRequest
+import testUtils.{ActionBuilderFixture, Fixtures}
+import testUtils.Fixtures.{buildFakeAddress, buildPersonDetailsCorrespondenceAddress}
+import testUtils.UserRequestFixture.buildUserRequest
 import views.html.personaldetails.{CloseCorrespondenceAddressChoiceView, ConfirmCloseCorrespondenceAddressView, UpdateAddressConfirmationView}
 
 import java.time.Instant
@@ -49,7 +49,12 @@ class ClosePostalAddressControllerSpec extends AddressBaseSpec {
       closedPostalAddress = true,
       Some(fakeAddress.fullAddress),
       None
-    )(buildUserRequest(request = FakeRequest()), configDecorator, templateRenderer, messages, ec).toString
+    )(
+      buildUserRequest(request = FakeRequest(), saUser = NonFilerSelfAssessmentUser),
+      configDecorator,
+      messages,
+      ec
+    ).toString
 
     def controller: ClosePostalAddressController =
       new ClosePostalAddressController(
@@ -59,7 +64,6 @@ class ClosePostalAddressControllerSpec extends AddressBaseSpec {
         addressJourneyCachingHelper,
         mockAuditConnector,
         mockAuthJourney,
-        withActiveTabAction,
         cc,
         errorRenderer,
         injected[CloseCorrespondenceAddressChoiceView],
@@ -153,7 +157,7 @@ class ClosePostalAddressControllerSpec extends AddressBaseSpec {
       val result = controller.onSubmit(FakeRequest())
 
       status(result) mustBe SEE_OTHER
-      redirectLocation(result) mustBe Some("/personal-account/your-profile")
+      redirectLocation(result) mustBe Some("/personal-account/profile-and-settings")
     }
 
     "return a bad request when supplied no value" in new LocalSetup {
@@ -197,7 +201,7 @@ class ClosePostalAddressControllerSpec extends AddressBaseSpec {
       "pertax-frontend",
       auditType,
       dataEvent.eventId,
-      Map("path" -> "/test", "transactionName" -> "closure_of_correspondence"),
+      Map("path" -> "/", "transactionName" -> "closure_of_correspondence"),
       Map(
         "nino"              -> Some(Fixtures.fakeNino.nino),
         "etag"              -> Some("115"),
@@ -214,7 +218,7 @@ class ClosePostalAddressControllerSpec extends AddressBaseSpec {
 
     "render the thank you page upon successful submission of closing the correspondence address and no locks present" in new LocalSetup {
 
-      override def currentRequest[A]: Request[A] = FakeRequest("POST", "/test").asInstanceOf[Request[A]]
+      override def currentRequest[A]: Request[A] = FakeRequest().asInstanceOf[Request[A]]
 
       val result = controller.confirmSubmit(FakeRequest())
 
@@ -246,7 +250,7 @@ class ClosePostalAddressControllerSpec extends AddressBaseSpec {
     }
 
     "render the thank you page upon successful submission of closing the correspondence address and only a lock on the residential address" in new LocalSetup {
-      override def currentRequest[A]: Request[A] = FakeRequest("POST", "/test").asInstanceOf[Request[A]]
+      override def currentRequest[A]: Request[A] = FakeRequest().asInstanceOf[Request[A]]
       override def getEditedAddressIndicators: List[AddressJourneyTTLModel] =
         List(AddressJourneyTTLModel("SomeNino", EditResidentialAddress(Instant.now())))
 
@@ -302,7 +306,7 @@ class ClosePostalAddressControllerSpec extends AddressBaseSpec {
     "return 500 if insert address lock fails" in new LocalSetup {
       override def isInsertCorrespondenceAddressLockSuccessful: Boolean = false
 
-      override def currentRequest[A]: Request[A] = FakeRequest("POST", "/test").asInstanceOf[Request[A]]
+      override def currentRequest[A]: Request[A] = FakeRequest("POST", "/").asInstanceOf[Request[A]]
 
       val result = controller.confirmSubmit(currentRequest)
 

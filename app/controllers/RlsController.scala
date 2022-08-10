@@ -18,16 +18,14 @@ package controllers
 
 import com.google.inject.Inject
 import config.ConfigDecorator
-import controllers.auth.requests.UserRequest
 import controllers.auth.AuthJourney
-import controllers.controllershelpers.{AddressJourneyCachingHelper, CountryHelper}
+import controllers.auth.requests.UserRequest
+import controllers.controllershelpers.AddressJourneyCachingHelper
 import models.dto.AddressPageVisitedDto
-import models.{Address, AddressPageVisitedDtoId, AddressesLock, EditCorrespondenceAddress, EditResidentialAddress}
+import models.{Address, AddressPageVisitedDtoId, AddressesLock}
 import play.api.mvc.{Action, ActionBuilder, AnyContent, MessagesControllerComponents}
 import repositories.EditAddressLockRepository
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.renderer.TemplateRenderer
 import util.AuditServiceTools.buildEvent
 import views.html.InternalServerErrorView
 import views.html.personaldetails.CheckYourAddressInterruptView
@@ -44,8 +42,6 @@ class RlsController @Inject() (
   internalServerErrorView: InternalServerErrorView
 )(implicit
   configDecorator: ConfigDecorator,
-  templateRenderer: TemplateRenderer,
-  countryHelper: CountryHelper,
   ec: ExecutionContext
 ) extends PertaxBaseController(cc) {
 
@@ -54,7 +50,6 @@ class RlsController @Inject() (
 
   private def auditRls(mainAddress: Option[Address], postalAddress: Option[Address])(implicit
     request: UserRequest[_],
-    hc: HeaderCarrier = HeaderCarrier(),
     ec: ExecutionContext
   ) =
     editAddressLockRepository.getAddressesLock(request.nino.map(_.withoutSuffix).getOrElse("Nino")).flatMap {

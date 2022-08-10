@@ -20,11 +20,10 @@ import config.ConfigDecorator
 import models._
 import org.jsoup.nodes.Document
 import play.api.test.FakeRequest
+import testUtils.Fixtures
 import uk.gov.hmrc.auth.core.retrieve.Name
 import uk.gov.hmrc.domain.SaUtrGenerator
-import uk.gov.hmrc.renderer.TemplateRenderer
-import util.Fixtures
-import util.UserRequestFixture.buildUserRequest
+import testUtils.UserRequestFixture.buildUserRequest
 import viewmodels.HomeViewModel
 
 import scala.collection.JavaConversions._
@@ -35,7 +34,7 @@ class HomeViewSpec extends ViewSpec {
 
   implicit val configDecorator: ConfigDecorator = injected[ConfigDecorator]
 
-  val homeViewModel = HomeViewModel(Nil, Nil, Nil, true, None)
+  val homeViewModel = HomeViewModel(Nil, Nil, Nil, true, None, true)
 
   "Rendering HomeView.scala.html" must {
 

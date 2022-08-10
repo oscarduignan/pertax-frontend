@@ -26,7 +26,7 @@ import play.api.mvc.AnyContent
 import play.api.test.FakeRequest
 import uk.gov.hmrc.domain.{SaUtr, SaUtrGenerator}
 import util.DateTimeTools.{current, previousAndCurrentTaxYear}
-import util.UserRequestFixture.buildUserRequest
+import testUtils.UserRequestFixture.buildUserRequest
 import views.html.ViewSpec
 
 class ViewSaAndItsaMergePageViewSpec extends ViewSpec {
@@ -84,6 +84,8 @@ class ViewSaAndItsaMergePageViewSpec extends ViewSpec {
       doc.text() must include(Messages("label.itsa_header"))
       doc.text() must include(Messages("label.mtd_for_sa"))
       doc.text() must include(Messages("label.send_updates_hmrc_compatible_software"))
+      doc.text() must not include (Messages("label.from_date_mtd_service_for_itsa_will_replace_sa_tax_return"))
+
       hasLink(
         doc,
         Messages("label.view_manage_your_mtd_for_sa"),
@@ -112,6 +114,12 @@ class ViewSaAndItsaMergePageViewSpec extends ViewSpec {
         doc.text() must include(
           Messages("label.online_returns_deadline", nextDeadlineTaxYear)
         )
+        doc.text() must include(Messages("label.making_tax_digital"))
+        doc.text() must include(Messages("label.from_date_mtd_service_for_itsa_will_replace_sa_tax_return"))
+
+        doc
+          .getElementsContainingText("Find out about Making Tax Digital for Income Tax Self Assessment")
+          .hasAttr("href") mustBe true
 
         hasLink(
           doc,

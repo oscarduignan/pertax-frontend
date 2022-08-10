@@ -31,8 +31,9 @@ label.hm_revenue_customs_ni_print.customs=Thollau EM
 label.continue=Parhau
 label.your_personal_tax_account=Cyfrif treth personol
 label.your_personal_tax_account_gov_uk=Cyfrif treth personol - GOV.UK
-label.your_profile=Eich proffil
-label.personal_details=Manylion personol
+label.profile_and_settings=Proffil a gosodiadau
+label.profile=Proffil
+label.settings=Gosodiadau
 label.track_your_forms=Dilyn eich ffurflenni
 label.your_national_insurance_number_is=Eich rhif Yswiriant Gwladol yw
 label.check_your_national_insurance_contributions=Gwirio’ch cyfraniadau Yswiriant Gwladol
@@ -61,6 +62,9 @@ label.your.postal_address=eich cyfeiriad post
 label.trusted_helpers=Cynorthwywyr y Gellir Ymddiried Ynddynt
 label.your_trusted_helpers=eich cynorthwywyr y gellir ymddiried ynddynt
 label.manage_trusted_helpers=Rheoli’ch Cynorthwywyr y Gellir Ymddiried Ynddynt
+label.manage_tax_agents=Rheoli’ch asiantau treth
+label.your_tax_agents=eich asiantau treth
+label.add_view_change_tax_agents=Ychwanegu, newid neu fwrw golwg dros asiantau treth
 label.go_paperless=Ewch yn ddi-bapur
 label.go_paperless_content=Cael e-byst ynghylch trethi, yn lle llythyrau
 label.sign_in_details=Manylion mewngofnodi
@@ -76,7 +80,7 @@ label.if_you_do_live_in_the_uk_text_before_link=Os ydych yn byw yn y DU, gallwch
 label.if_you_do_live_in_the_uk_link_text=newid eich cyfeiriad
 label.if_you_do_not_live_in_the_uk_text_before_link=Os nad ydych y byw yn y DU,
 label.if_you_do_not_live_in_the_uk_link_text=llenwch y ffurflen ‘Notification of a change in personal details’ i ddiweddaru’ch cyfeiriad
-label.all_your_letters_will_be_sent_to_this_address=Bydd eich llythyrau’n cael eu hanfon i’r cyfeiriad hwn.
+label.all_letters_will_be_sent_to_this_address=Bydd pob llythyr yn cael ei anfon i’r cyfeiriad hwn.
 label.same_as_main_address=Yr un peth â’r prif gyfeiriad
 label.you_can_only_change_this_address_once_a_day_please_try_again_tomorrow=Dim ond unwaith y diwrnod y gallwch newid y cyfeiriad hwn. Rhowch gynnig arall arni yfory.
 label.select_your_address=Dewis eich cyfeiriad
@@ -85,8 +89,8 @@ label.your_address_has_been_changed=Mae’ch cyfeiriad wedi’i newid
 label.enter_your_address_if_it_is_not_shown=Nodi’ch cyfeiriad os nad yw’n cael ei ddangos
 label.enter_your_address_yourself=Nodi’ch cyfeiriad eich hun
 label.sign_in=Mewngofnodi
-label.youve_been_signed_out=Mae’r system wedi’ch allgofnodi
-label.timeout_message=Nid ydych wedi gwneud unrhyw beth am {0} munud, felly rydym wedi’ch allgofnodi er mwyn cadw’ch cyfrif yn ddiogel.
+label.youve_been_signed_out=Er eich diogelwch, gwnaethom eich allgofnodi
+label.timeout_message=Ni wnaethom gadw’ch atebion.
 label.please_sign_in_again=Mewngofnodwch eto.
 label.timeout.dialog.title=Rydych ar fin cael eich allgofnodi
 label.timeout.dialog.message=Am resymau diogelwch, byddwch yn cael eich allgofnodi ymhen
@@ -107,11 +111,12 @@ label.address_line_four=Llinell cyfeiriad 4 (dewisol)
 label.address_line_five=Llinell cyfeiriad 5 (dewisol)
 label.country=Gwlad
 label.change=Newid
+label.manage=Rheoli
 label.telephone_0300_200_3300=Ffôn: 0300 200 1900
 label.textphone_0300_200_3319=Ffôn testun: 0300 200 3319
 label.contact_number=0300 200 1900
 label.outside_uk_441355359022=Y tu allan i’r DU: +44 135 535 9022
-label.opens_in_a_new_window=(yn agor ffenestr neu dab newydd)
+label.opens_in_a_new_window=(yn agor tab newydd)
 label.yes=Iawn
 label.no=Na
 label.list_of_messages=Rhestr o negeseuon
@@ -277,8 +282,7 @@ label.use_the_commercial_software_you_filed_with=defnyddiwch y meddalwedd masnac
 label.if_your_accountant_filed_check_with_them=os mai eich cyfrifydd wnaeth gyflwyno - gofynnwch iddo ef/hi
 label.call_us_if_you_filed_your_return_by_post_link_text=ffoniwch ni
 label.call_us_if_you_filed_your_return_by_post_text_after_link=os gwnaethoch gyflwyno’ch Ffurflen Dreth drwy’r post
-label.help_improve_gov_uk=Helpwch i wella gwasanaethau CThEM
-label.get.involved.in.making.gov.services.better=Gallwch fod yn rhan o wneud gwasanaethau’r Llywodraeth yn well (yn agor ffenestr neu dab newydd)
+label.help_improve_gov_uk=Helpu i wella’r gwasanaeth Budd-dal Plant
 label.no_thanks=Dim diolch
 label.url_coronavirus=Coronafeirws (COVID-19): Arweiniad a chefnogaeth (yn agor mewn ffenestr neu dab newydd)
 label.hide_message=Cuddio’r neges
@@ -291,11 +295,7 @@ label.remove=Dileu
 # News
 #
 label.latest_news_and_updates=Y newyddion diweddaraf a diweddariadau
-label.stop_using_Verify=Defnydd Cyfrif Treth Personol CThEM o GOV.UK Verify i ddod i ben
 label.news_and_updates=Newyddion a Diweddariadau
-label.verify_stop_from_1_April_2022=O 1 Ebrill 2022 ymlaen, ni fyddwch yn gallu defnyddio GOV.UK Verify i fewngofnodi i’ch Cyfrif Treth Personol CThEM a Hunanasesiad. Bydd angen i chi ddefnyddio Porth y Llywodraeth i fewngofnodi.
-label.create_government_gateway_sign_in=Crëwch fanylion ar gyfer mewngofnodi i Borth y Llywodraeth drwy ddewis ‘Mewngofnodi’ (yn agor tab newydd)
-createGGSigningIn.link.url = https://www.gov.uk/gwasanaethau-cthem-mewngofnodi-neu-gofrestru
 label.percentage_points_uplift_in_NIC=Cynnydd o 1.25 pwynt canrannol yng nghyfraniadau Yswiriant Gwladol
 label.national_insurance_contributions_will_increase_by_1.25_percentage_points=O 6 Ebrill 2022 i 5 Ebrill 2023, bydd cyfraniadau Yswiriant Gwladol yn cynyddu 1.25 pwynt canrannol. Caiff hyn ei wario ar y GIG ac ar iechyd a gofal cymdeithasol yn y DU.
 label.the_increase_will_apply_to=Bydd y cynnydd yn berthnasol i’r canlynol:
@@ -368,6 +368,7 @@ error.date_in_future=Mae’n rhaid i’r dyddiad y gwnaethoch ddechrau byw fan h
 head.error.country_required=Nodwch wlad
 error.country_required=Nodwch wlad
 error.message.error = Gwall:
+error.you_must_select_an_answer=Dewis ateb
 
 #
 # Messages in lower case
@@ -470,6 +471,24 @@ label.old_way_sa_returns=Yr hen ffordd o gyflwyno eich Ffurflenni Treth Hunanase
 label.self_assessment_tax_returns=Ffurflenni Treth Hunanasesiad
 label.view_manage_your_mtd_itsa=Bwrw golwg dros eich cynllun Troi Treth yn Ddigidol ar gyfer Hunanasesiad Treth Incwm a’i reoli, neu gael at eich Ffurflenni Treth Hunanasesiad.
 label.online_deadline_final_declarations=Y dyddiad cau ar gyfer datganiadau terfynol neu Ffurflenni Treth ar-lein yw 31 Ionawr {0}.
+label.making_tax_digital=Troi Treth yn Ddigidol
+label.from_date_mtd_service_for_itsa_will_replace_sa_tax_return=O 6 Ebrill 2024 ymlaen bydd y gwasanaeth Troi Treth yn Ddigidol ar gyfer Hunanasesiad Treth Incwm yn disodli’r Ffurflen Dreth Hunanasesiad.
+label.some_businesses_agents_using_mtd_for_itsa=Mae rhai busnesau ac asiantau eisoes yn defnyddio’r gwasanaeth Troi Treth yn Ddigidol ar gyfer Hunanasesiad Treth Incwm.
+label.find_out_about_making_tax_digital_for_income_tax_self_assessment=Cael gwybod am y cynllun Troi Treth yn Ddigidol ar gyfer Hunanasesiad Treth Incwm (yn agor tab newydd)
+
+#
+# Breathing Space
+#
+label.breathing_space=AMSER I GAEL EICH GWYNT ATOCH
+label.find_out_what_it_means_to_be_in_breathing_space=Darganfyddwch beth mae’n ei olygu i fod mewn Amser i gael eich gwynt atoch.
+label.you_are_in_breathing_space=Rydych mewn cyfnod ‘amser i gael eich gwynt atoch’ (Breathing Space)
+label.the_debt_respite_scheme_gives_people_in_debt_the_right_to_legal_protections_from_their_creditors=Mae’r Cynllun Seibiant rhag Dyled (amser i gael eich gwynt atoch) yn rhoi’r hawl i bobl sydd mewn dyled gael eu diogelu’n gyfreithiol rhag eu credydwyr.
+label.whilst_you_are_in_breathing_space=Tra eich bod yn y cyfnod hwn, ni fyddwn yn:
+label.add_interest_or_charges_to_your_debt=codi llog na chostau ar eich dyled
+label.contact_you_to_ask_for_payment=cysylltu â chi i ofyn am daliad
+label.take_enforcement_action_against_you=cymryd camau gorfodi yn eich erbyn
+label.you_can_still_make_payments_towards_your_debt_during_breathing_space=Gallwch barhau i wneud taliadau tuag at eich dyled yn ystod y cyfnod amser i gael eich gwynt atoch. Siaradwch â’ch ymgynghorydd arian i gael rhagor o wybodaeth am y cynllun.
+
 
 #
 # Benefits

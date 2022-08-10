@@ -16,10 +16,10 @@
 
 package controllers.auth
 
+import com.google.inject.Inject
 import controllers.auth.requests.UserRequest
 import models.Breadcrumb
 import play.api.mvc.{ActionRefiner, Result}
-import com.google.inject.Inject
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -41,7 +41,6 @@ class WithBreadcrumbAction @Inject() (implicit ec: ExecutionContext) {
               request.enrolments,
               request.profile,
               request.unreadMessageCount,
-              request.activeTab,
               Some(breadcrumb),
               request.request
             )

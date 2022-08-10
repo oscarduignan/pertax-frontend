@@ -30,7 +30,7 @@ import views.html.ViewSpec
 import views.html.personaldetails.partials.{AddressView, CorrespondenceAddressView}
 import views.html.tags.formattedNino
 
-import java.time.{Instant, OffsetDateTime}
+import java.time.Instant
 import scala.util.Random
 
 class PersonalDetailsViewModelSpec extends ViewSpec {
@@ -54,7 +54,6 @@ class PersonalDetailsViewModelSpec extends ViewSpec {
     None,
     None,
     Set(),
-    None,
     None,
     None,
     None,
@@ -99,7 +98,8 @@ class PersonalDetailsViewModelSpec extends ViewSpec {
   "getSignInDetailsRow" must {
     "return None" when {
       "user is not GG and profile URL is defined" in {
-        val request = userRequest.copy(credentials = Credentials("", "Verify"), profile = Some("example.com"))
+        val request =
+          userRequest.copy(credentials = Credentials("", ""), profile = Some("example.com"))
         val actual = personalDetailsViewModel.getSignInDetailsRow(request, messages)
         actual mustBe None
       }
@@ -110,7 +110,7 @@ class PersonalDetailsViewModelSpec extends ViewSpec {
       }
 
       "user is not GG and profile URL is not defined" in {
-        val request = userRequest.copy(credentials = Credentials("", "Verify"))
+        val request = userRequest.copy(credentials = Credentials("", "GovernmentGateway"))
         val actual = personalDetailsViewModel.getSignInDetailsRow(request, messages)
         actual mustBe None
       }
@@ -140,7 +140,7 @@ class PersonalDetailsViewModelSpec extends ViewSpec {
   "getPaperlessSettingsRow" must {
     "return None" when {
       "user is not gg" in {
-        val request = userRequest.copy(credentials = Credentials("", "Verify"))
+        val request = userRequest.copy(credentials = Credentials("", ""))
         val actual = personalDetailsViewModel.getPaperlessSettingsRow(request, messages)
         actual mustBe None
       }
@@ -185,7 +185,7 @@ class PersonalDetailsViewModelSpec extends ViewSpec {
 
     "return PersonalDetailsTableRowModel" when {
       "user is verify" in {
-        val request = userRequest.copy(credentials = Credentials("", "Verify"))
+        val request = userRequest.copy(credentials = Credentials("", "GovernmentGateway"))
         val actual = personalDetailsViewModel.getTrustedHelpersRow(request, messages)
         val expected = Some(
           PersonalDetailsTableRowModel(
@@ -267,7 +267,7 @@ class PersonalDetailsViewModelSpec extends ViewSpec {
         val details = exampleDetails.copy(address = Some(testAddress))
         val request = userRequest.copy(personDetails = Some(details))
 
-        val actual = personalDetailsViewModel.getAddressRow(List.empty)(request, messages)
+        val actual = personalDetailsViewModel.getAddressRow(List.empty, taxCreditsAvailable = true)(request, messages)
         val expected = PersonalDetailsTableRowModel(
           "main_address",
           "label.main_address",
@@ -361,10 +361,11 @@ class PersonalDetailsViewModelSpec extends ViewSpec {
         val expectedPostalAddress = PersonalDetailsTableRowModel(
           "postal_address",
           "label.postal_address",
-          correspondenceAddressView(None, countryHelper.excludedCountries),
+          correspondenceAddressView(Some(testAddress), countryHelper.excludedCountries),
           "label.change",
           "label.your.postal_address",
-          Some(controllers.address.routes.PostalDoYouLiveInTheUKController.onPageLoad.url)
+          Some(controllers.address.routes.PostalDoYouLiveInTheUKController.onPageLoad.url),
+          isPostalAddressSame = true
         )
 
         actual.postalAddress mustBe Some(expectedPostalAddress)

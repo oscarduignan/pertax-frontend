@@ -22,16 +22,30 @@ import org.scalatest.Assertion
 import play.api.i18n.Messages
 import views.html.ViewSpec
 import views.html.cards.home.LatestNewsAndUpdatesView
+import play.api.Application
+import play.api.inject.guice.GuiceApplicationBuilder
 
 class LatestNewsAndUpdatesViewSpec extends ViewSpec {
+  val latestNewsAndUpdatesView: LatestNewsAndUpdatesView = app.injector.instanceOf[LatestNewsAndUpdatesView]
 
-  val latestNewsAndUpdatesView = injected[LatestNewsAndUpdatesView]
-  implicit val configDecorator: ConfigDecorator = injected[ConfigDecorator]
+  override implicit lazy val app: Application = localGuiceApplicationBuilder().build()
 
-  def hasLink(document: Document, content: String, href: String)(implicit messages: Messages): Assertion =
+  implicit val configDecorator: ConfigDecorator = app.injector.instanceOf[ConfigDecorator]
+
+  def hasLink(document: Document, content: String)(implicit messages: Messages): Assertion =
     document.getElementsMatchingText(content).hasAttr("href") mustBe true
 
-  "TaxCalculation card" must {
+  protected def localGuiceApplicationBuilder(): GuiceApplicationBuilder =
+    GuiceApplicationBuilder()
+      .configure(
+        Map(
+          "feature.news.nicSection.short-description-en" -> "1.25 percentage points uplift in National Insurance contributions",
+          "feature.news.nicSection.content-en"           -> "<p class=\"govuk-body\">From 6 April 2022 to 5 April 2023 National Insurance contributions will increase by 1.25 percentage points. This will be spent on the NHS, health and social care in the UK.</p><p class=\"govuk-body\">The increase will apply to:</p><ul class=\"govuk-list govuk-list--bullet\"><li>Class 1 (paid by employees)</li><li>Class 4 (paid by self-employed)</li><li>secondary Class 1, 1A and 1B (paid by employers)</li></ul><p class=\"govuk-body\">The increase will not apply if you are over the State Pension age.</p><p class=\"govuk-body govuk-!-margin-bottom-3\"><a href=\"https://www.gov.uk/guidance/prepare-for-the-health-and-social-care-levy\" class=\"govuk-link\" target=\"_blank\" rel=\"noopener noreferrer\">Prepare for the Health and Social Care Levy (opens in new tab)</a></p>",
+          "feature.news.nicSection.start-date"           -> "2022-04-01"
+        )
+      )
+
+  "LatestNewsAndUpdates card" must {
 
     val doc =
       asDocument(
@@ -49,15 +63,13 @@ class LatestNewsAndUpdatesViewSpec extends ViewSpec {
 
       hasLink(
         doc,
-        Messages("label.stop_using_Verify"),
-        s"${configDecorator.pertaxFrontendHomeUrl}/personal-account/news"
+        Messages("label.percentage_points_uplift_in_NIC")
       )
 
     }
 
     "render the given content correctly" in {
 
-      doc.text() must include(Messages("label.stop_using_Verify"))
       doc.text() must include(Messages("label.percentage_points_uplift_in_NIC"))
     }
   }

@@ -18,11 +18,10 @@ package controllers.auth.requests
 
 import models._
 import play.api.mvc.{Request, WrappedRequest}
-import uk.gov.hmrc.auth.core.{ConfidenceLevel, Enrolment}
 import uk.gov.hmrc.auth.core.retrieve.Credentials
 import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
+import uk.gov.hmrc.auth.core.{ConfidenceLevel, Enrolment}
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.renderer.ActiveTab
 
 final case class UserRequest[+A](
   nino: Option[Nino],
@@ -35,7 +34,6 @@ final case class UserRequest[+A](
   enrolments: Set[Enrolment],
   profile: Option[String],
   unreadMessageCount: Option[Int] = None,
-  activeTab: Option[ActiveTab] = None,
   breadcrumb: Option[Breadcrumb] = None,
   request: Request[A]
 ) extends WrappedRequest[A](request) {
@@ -46,8 +44,6 @@ final case class UserRequest[+A](
   }
 
   def isGovernmentGateway: Boolean = credentials.providerType == "GovernmentGateway"
-
-  def isVerify: Boolean = credentials.providerType == "Verify"
 
   def isSa: Boolean = saUserType != NonFilerSelfAssessmentUser
 
