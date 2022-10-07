@@ -18,6 +18,9 @@
 @import controllers.auth.requests.UserRequest
 @import tags._
 @import uk.gov.hmrc.play.views.html.helpers.{FormWithCSRF, Input, _}
+@import uk.gov.hmrc.hmrcfrontend.views.html.helpers.HmrcAccessibleAutocompleteCss
+@import uk.gov.hmrc.hmrcfrontend.views.html.helpers.HmrcAccessibleAutocompleteJavascript
+@import uk.gov.hmrc.govukfrontend.views.html.components.implicits._
 @import scala.concurrent.ExecutionContext
 @import components.{ErrorSummary, InputValue, Button}
 
@@ -28,7 +31,9 @@
     inputValue: InputValue,
     button: Button,
     govukFieldset: GovukFieldset,
-    govukSelect : GovukSelect
+    govukSelect : GovukSelect,
+    autocompleteCss : HmrcAccessibleAutocompleteCss,
+    autocompleteJavascript : HmrcAccessibleAutocompleteJavascript
 )
 
 @(updateAddressForm: Form[models.dto.AddressDto], typ: AddrType, countries: List[Country])(implicit request: UserRequest[_],
@@ -38,21 +43,6 @@ configDecorator: ConfigDecorator, messages: play.api.i18n.Messages, ec: Executio
     @typ.ifIs(
     residential = messages("label.enter_your_address"),
     postal = messages("label.enter_the_address"))
-}
-
-@stylesheet = {
-    <link rel="stylesheet" href='@routes.AssetsController.versioned("stylesheets/modules/accessible-autocomplete.min.css")'>
-}
-
-@scriptElems = {
-    <script src='@controllers.routes.AssetsController.versioned("javascripts/accessible-autocomplete.min.js")'></script>
-    <script>
-        accessibleAutocomplete.enhanceSelectElement({
-            selectElement: document.querySelector('#country'),
-            showAllValues: false,
-            autoselect: true
-        });
-    </script>
 }
 
 @fieldsetDescribedBy = @{
@@ -66,8 +56,8 @@ configDecorator: ConfigDecorator, messages: play.api.i18n.Messages, ec: Executio
 @main(
     pageTitle = title.toString,
     showBackLink = true,
-    scripts = Some(scriptElems),
-    stylesheets = Some(stylesheet),
+    scripts = Some(autocompleteJavascript()),
+    stylesheets = Some(autocompleteCss()),
     yourProfileActive = true
 ) {
 
@@ -157,5 +147,8 @@ configDecorator: ConfigDecorator, messages: play.api.i18n.Messages, ec: Executio
         label = Label(
             content = Text(messages("label.country"))
         )
+    ).asAccessibleAutocomplete(AccessibleAutocomplete(
+        showAllValues = true,
+        autoSelect = false
     ))
 }
